@@ -1,4 +1,5 @@
 import os
+import re
 import json
 from extraction.base import BaseGemmaClient
 from extraction.mock_client import MockGemmaClient
@@ -11,15 +12,37 @@ from schemas.extraction import ExtractedFacts
 from schemas.findings import Finding
 from schemas.resolution import ResolutionDraft
 
+def _load_env_file():
+    """Simple parser to load .env variables if present."""
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    env_path = os.path.join(base_dir, ".env")
+    if os.path.exists(env_path):
+        with open(env_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    k, v = line.split("=", 1)
+                    os.environ.setdefault(k.strip(), v.strip())
+
+_load_env_file()
+
 class GemmaClient(BaseGemmaClient):
     """
     Live Gemma / GenAI inference client with automatic fallback
     to deterministic mock client when offline or unconfigured.
     """
 
-    def __init__(self, api_key: str | None = None, model_name: str = "gemini-2.5-flash"):
-        self.api_key = api_key or os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
-        self.model_name = model_name
+    def __init__(self, api_key: str | None = None, model_name: str | None = None):
+        self.api_key = (
+            api_key
+            or os.environ.get("GEMINI_API_KEY")
+            or os.environ.get("GOOGLE_API_KEY")
+        )
+        self.model_name = (
+            model_name
+            or os.environ.get("GEMMA_MODEL")
+            or "gemma-4-26b-a4b-it"
+        )
         self._fallback_client = MockGemmaClient()
         self._genai_client = None
 
@@ -30,12 +53,17 @@ class GemmaClient(BaseGemmaClient):
             except Exception:
                 self._genai_client = None
 
+    def _clean_json_text(self, text: str) -> str:
+        """Strip markdown fences if present."""
+        cleaned = re.sub(r"^```(?:json)?\s*", "", text.strip(), flags=re.IGNORECASE)
+        cleaned = re.sub(r"\s*```$", "", cleaned)
+        return cleaned.strip()
+
     def extract_packet_facts(self, doc_name: str, pages_text: dict[int, str]) -> ExtractedFacts:
         if not self._genai_client:
             return self._fallback_client.extract_packet_facts(doc_name, pages_text)
 
         try:
-            # Build structured prompt with document text
             pages_formatted = "\n\n".join(
                 f"--- PAGE {p_num} ---\n{text}" for p_num, text in pages_text.items()
             )
@@ -48,13 +76,14 @@ class GemmaClient(BaseGemmaClient):
 
             response = self._genai_client.models.generate_content(
                 model=self.model_name,
-                contents=prompt,
-                config={"response_mime_type": "application/json"}
+                contents=prompt
             )
-            data = json.loads(response.text)
+            raw_text = response.text or ""
+            cleaned_json = self._clean_json_text(raw_text)
+            data = json.loads(cleaned_json)
             return ExtractedFacts(**data)
         except Exception:
-            # Safe degradation to mock client ensuring audit pipeline continuity
+            # Fall back safely to mock client ensuring verification continues
             return self._fallback_client.extract_packet_facts(doc_name, pages_text)
 
     def generate_resolution_draft(
@@ -67,7 +96,6 @@ class GemmaClient(BaseGemmaClient):
             return self._fallback_client.generate_resolution_draft(finding, patient_name, mrn)
 
         try:
-            # Format prompt and invoke model
             prompt = DRAFT_RETRIEVAL_TICKET_PROMPT.format(
                 title=finding.title,
                 description=finding.description,
