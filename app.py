@@ -4,6 +4,7 @@ from ingestion.pdf_reader import PDFReader
 from ingestion.page_renderer import PageRenderer
 from audit.orchestrator import AuditOrchestrator
 from audit.re_audit import ReAuditEngine
+from persistence.repository import get_repository
 from schemas.common import ReadinessStatus, FindingStatus, SeverityLevel, ActionType
 from ui.styles import CUSTOM_CSS
 
@@ -30,6 +31,7 @@ if "orchestrator" not in st.session_state:
     st.session_state.orchestrator = AuditOrchestrator()
     st.session_state.re_auditor = ReAuditEngine(st.session_state.orchestrator)
     st.session_state.page_renderer = PageRenderer()
+    st.session_state.repo = get_repository()
     st.session_state.current_run = None
     st.session_state.facts = None
     st.session_state.parsed_docs = []
@@ -86,7 +88,17 @@ with st.sidebar:
                 st.session_state.parsed_docs = docs
                 st.session_state.active_doc_idx = 0
                 st.session_state.active_page = 1
-                st.success("Audit complete!")
+                
+                # Persist to database (Supabase or local fallback)
+                st.session_state.repo.save_packet(
+                    facts.packet_id,
+                    facts.patient.claim_id if facts.patient else None,
+                    facts.patient.name if facts.patient else None,
+                    facts.patient.patient_id if facts.patient else None
+                )
+                st.session_state.repo.save_extracted_facts(facts.packet_id, facts)
+                st.session_state.repo.save_audit_run(run)
+                st.success("Audit complete & synced to database!")
 
     st.markdown("---")
     st.markdown("### 🔄 Re-Audit Engine")
@@ -128,6 +140,8 @@ with st.sidebar:
                 st.success("Custom re-audit complete!")
 
     st.markdown("---")
+    db_name = "⚡ Supabase (Cloud PostgreSQL)" if type(st.session_state.repo).__name__ == "SupabaseRepository" else "💾 SQLite (Local)"
+    st.caption(f"🗄️ **Database:** {db_name}")
     st.caption("🛡️ **System Core:** AI understands. Rules verify. Humans approve.")
     st.caption("⚙️ **Engine:** Gemma Adapter + Pure Python Rules Engine")
 
