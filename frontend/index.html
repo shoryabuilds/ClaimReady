@@ -272,14 +272,14 @@
             <div>
               <div class="packet-title-line">
                 <span class="packet-label">Source Packet</span>
-                <span class="badge badge-green-pill">
+                <span class="badge badge-green-pill" id="sourcePacketBadge">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
-                  patient_packet_claim_8902_v2.zip (6.4 MB)
+                  <span id="sourcePacketName">patient_packet_claim_8902_v2.zip (6.4 MB)</span>
                 </span>
               </div>
-              <p class="packet-subtext">All clinical notes, CMS-1500, pre-auth credentials, and lab sheets extracted (4 items).</p>
+              <p class="packet-subtext" id="sourcePacketSubtext">All clinical notes, CMS-1500, pre-auth credentials, and lab sheets extracted (4 items).</p>
             </div>
           </div>
 
@@ -313,19 +313,19 @@
           <!-- LEFT: DOCUMENT VIEWER -->
           <div class="doc-viewer-panel">
             <div class="doc-toolbar">
-              <div class="doc-tabs">
-                <button class="doc-tab active" id="tab-op-note" onclick="selectDocTab('op-note')">
+              <div class="doc-tabs" id="docTabsContainer">
+                <button class="doc-tab active" id="tab-doc-0" onclick="switchActiveDoc(0)">
                   📄 Operative Report (p.3)
                 </button>
-                <button class="doc-tab" id="tab-cms-1500" onclick="selectDocTab('cms-1500')">
+                <button class="doc-tab" id="tab-doc-1" onclick="switchActiveDoc(1)">
                   📋 CMS-1500
                 </button>
               </div>
 
               <div class="doc-page-controls">
-                <button class="pager-btn" onclick="prevPage()">‹</button>
-                <span class="pager-label">Page <span id="current-page-num">3</span> of 8</span>
-                <button class="pager-btn" onclick="nextPage()">›</button>
+                <button class="pager-btn" id="btnPrevPage" onclick="prevPage()">‹</button>
+                <span class="pager-label">Page <span id="current-page-num">1</span> of <span id="total-pages-count">3</span></span>
+                <button class="pager-btn" id="btnNextPage" onclick="nextPage()">›</button>
               </div>
 
               <div class="doc-zoom-controls">
@@ -418,15 +418,15 @@
             </div>
 
             <!-- DOCUMENT STATUS FOOTER BAR -->
-            <div class="doc-footer-status">
+            <div class="doc-footer-status" id="docFooterStatus">
               <div class="status-left">
                 <span class="status-indicator-blue"></span>
-                <span>Viewing Page 3 (Operative Findings) — Corresponds to Finding #1</span>
+                <span id="footerStatusText">Viewing Page 1 (Clinical Notes) — Corresponds to Finding #1</span>
               </div>
               <div class="status-right">
-                <span>OCR Fidelity: <strong>99.4%</strong></span>
+                <span>OCR Fidelity: <strong id="footerOcrText">99.8%</strong></span>
                 <span class="pipe-sep">|</span>
-                <span>Policy Rule: <strong>LCD-2849</strong></span>
+                <span>Readiness: <strong id="footerReadinessText">REVIEW_REQUIRED</strong></span>
               </div>
             </div>
           </div>

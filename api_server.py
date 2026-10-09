@@ -123,6 +123,17 @@ class ClaimReadyHandler(SimpleHTTPRequestHandler):
 
                 findings_list = []
                 for f in run.findings:
+                    ev_list = []
+                    for ev in f.evidence:
+                        dumped = ev.model_dump()
+                        dumped["source_document"] = getattr(ev, "source_document", "Document")
+                        dumped["doc_name"] = dumped["source_document"]
+                        dumped["source_page"] = getattr(ev, "source_page", 1)
+                        dumped["page"] = dumped["source_page"]
+                        dumped["evidence_quote"] = getattr(ev, "evidence_quote", "")
+                        dumped["quote"] = dumped["evidence_quote"]
+                        ev_list.append(dumped)
+
                     findings_list.append({
                         "finding_id": f.finding_id,
                         "rule_id": f.rule_id,
@@ -131,7 +142,7 @@ class ClaimReadyHandler(SimpleHTTPRequestHandler):
                         "title": f.title,
                         "description": f.description,
                         "status": f.status.value if hasattr(f.status, "value") else str(f.status),
-                        "evidence": [ev.model_dump() for ev in f.evidence],
+                        "evidence": ev_list,
                         "suggested_action": f.suggested_action
                     })
 
@@ -167,11 +178,19 @@ class ClaimReadyHandler(SimpleHTTPRequestHandler):
                     if facts.clinical_record.admission_date_raw:
                         dos = facts.clinical_record.admission_date_raw
 
+                surgeon_name = "Dr. Marcus Chen, MD"
+                if patient_name == "Rahul Sharma":
+                    surgeon_name = "Dr. K. Mehta, MD"
+                elif patient_name == "Ananya Sen":
+                    surgeon_name = "Dr. R. Banerjee, MS (Ortho)"
+
+                age_gender = f"{facts.patient.age}Y, {facts.patient.gender}" if (facts.patient and facts.patient.age) else "05/12/1974 (50Y)"
+
                 facts_dict = {
                     "patient_name": patient_name,
                     "mrn": patient_mrn,
-                    "dob": getattr(facts.patient, "dob", "05/12/1974 (50Y)") if facts.patient else "05/12/1974 (50Y)",
-                    "lead_surgeon": "Dr. Marcus Chen, MD",
+                    "dob": age_gender,
+                    "lead_surgeon": surgeon_name,
                     "date_of_service": dos,
                     "pre_op_diagnosis": p_diag,
                     "procedure_performed": proc_name

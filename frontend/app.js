@@ -105,6 +105,40 @@ No further documentation retrieval required for this finding.`
 let currentFindingId = 1;
 let currentZoom = 100;
 let currentPage = 3;
+let activeDocIndex = 0;
+let activePageNumber = 3;
+let currentAuditData = null;
+
+let currentAuditDocuments = [
+  {
+    doc_name: "Surgical_Operative_Note.pdf",
+    page_count: 3,
+    pages: [
+      {
+        page_number: 1,
+        text: "ST. JUDE REGIONAL MEDICAL CENTER\nDepartment of Surgery • Division of Hepatobiliary\nPatient Name: Vance, Eleanor\nDOB: 05/12/1974 (50Y) | Date of Surgery: 09/14/2024\nLead Surgeon: Dr. Marcus Chen, MD\n\nPRE-OPERATIVE CLINICAL ADMISSION RECORD\nPatient admitted via Emergency Department presenting with recurrent acute right upper quadrant abdominal pain radiating to epigastrium and scapular region. Elevated leukocytosis noted.\nPhysical examination revealed tenderness in right hypochondrium with localized peritoneal signs."
+      },
+      {
+        page_number: 2,
+        text: "ST. JUDE REGIONAL MEDICAL CENTER\nPRE-OPERATIVE DIAGNOSTIC RADIOLOGY CLEARANCE\nPatient Name: Vance, Eleanor | MRN: #994-019-21\nPre-authorization credential #AUTH-9921 matched carrier database for procedure CPT 47563 with full prior approval.\nRadiology cross-reference notes pending transmission from outside facility."
+      },
+      {
+        page_number: 3,
+        text: "ST. JUDE REGIONAL MEDICAL CENTER\nSURGICAL OPERATIVE NOTE\nPre-operative Diagnosis: Cholelithiasis with acute cholecystitis [ICD-10: K80.00]\nPost-operative Diagnosis: Cholelithiasis with acute cholecystitis, resolved with intact extraction\nProcedure Performed: Laparoscopic cholecystectomy with intraoperative cholangiogram [CPT: 47563]\nAnesthesia: General endotracheal anesthesia. ASA Physical Status III.\n\nCLINICAL INDICATION & OPERATIVE NARRATIVE\nThe patient is a 50-year-old female admitted via the Emergency Department presenting with recurrent acute right upper quadrant pain radiating into the epigastrium and scapular region, accompanied by elevated leukocytosis and mild transaminitis.\n\n“...Surgical indication confirmed via pre-operative transabdominal ultrasonography dated 09/10/2024 at Westside Imaging. Gallbladder distended with multiple shadowing calculi and sonographic Murphy sign positive...”\n\nUnder standard sterile prep, four trocars were inserted. The gall bladder fundus was grasped and retracted cephalad. Calot's triangle was meticulously skeletonized. The cystic duct and cystic artery were double clipped and divided cleanly without thermal injury."
+      }
+    ]
+  },
+  {
+    doc_name: "CMS-1500_Claim_Form.pdf",
+    page_count: 1,
+    pages: [
+      {
+        page_number: 1,
+        text: "HEALTH INSURANCE CLAIM FORM (CMS-1500)\nPatient Name: Vance, Eleanor | Insured ID: 99401921\nBox 24A: Date of Service 09/15/2024\nBox 24D: Procedures/Services CPT 47563\nBox 23: Prior Authorization #AUTH-9921\nTotal Charges: $14,850.00 | Billed Units: 1"
+      }
+    ]
+  }
+];
 
 // FORMAT DATE UTILITY
 function formatAuditDate(dateStr) {
@@ -289,28 +323,34 @@ function selectFinding(id) {
   if (targetEl) targetEl.innerText = f.targetDoc;
   if (quoteEl) quoteEl.innerText = f.quote;
 
-  // Update Document Highlight Box
-  const calloutBox = document.getElementById('docHighlightBox');
-  if (calloutBox) {
-    calloutBox.innerHTML = `
-      <div class="callout-header">
-        <div class="callout-title">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-          </svg>
-          ${f.calloutTitle}
-        </div>
-        <span class="line-badge">${f.lineRef}</span>
-      </div>
-      <div class="callout-quote">${f.fullQuote}</div>
-    `;
-    calloutBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  // Sync active document and page with cited finding
+  if (f.docIndex !== undefined && f.docIndex < currentAuditDocuments.length) {
+    activeDocIndex = f.docIndex;
+  }
+  if (f.page) {
+    activePageNumber = f.page;
   }
 
-  // Update page number indicator
-  currentPage = f.page;
-  const pageNum = document.getElementById('current-page-num');
-  if (pageNum) pageNum.innerText = currentPage;
+  // Update tabs active styling
+  const tabsContainer = document.getElementById('docTabsContainer');
+  if (tabsContainer) {
+    const tabs = tabsContainer.querySelectorAll('.doc-tab');
+    tabs.forEach((t, i) => {
+      if (i === activeDocIndex) t.classList.add('active');
+      else t.classList.remove('active');
+    });
+  }
+
+  // Render document canvas with highlighted evidence callout
+  renderActiveDocumentPage();
+
+  // Smooth scroll into highlight box
+  setTimeout(() => {
+    const calloutBox = document.getElementById('docHighlightBox');
+    if (calloutBox) {
+      calloutBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, 60);
 }
 
 // 5. MARK CURRENT FINDING AS REVIEWED
@@ -360,38 +400,203 @@ function resetZoom() {
   if (canvas) canvas.style.transform = `scale(1)`;
 }
 
-// 7. DOCUMENT PAGINATION
+// 7. DOCUMENT PAGINATION CONTROLS
 function prevPage() {
-  if (currentPage > 1) {
-    currentPage--;
-    updatePageDisplay();
+  if (activePageNumber > 1) {
+    activePageNumber--;
+    renderActiveDocumentPage();
   }
 }
 
 function nextPage() {
-  if (currentPage < 8) {
-    currentPage++;
-    updatePageDisplay();
+  const doc = currentAuditDocuments[activeDocIndex] || {};
+  const maxPages = doc.page_count || (doc.pages ? doc.pages.length : 1);
+  if (activePageNumber < maxPages) {
+    activePageNumber++;
+    renderActiveDocumentPage();
   }
 }
 
-function updatePageDisplay() {
-  const pageNum = document.getElementById('current-page-num');
-  if (pageNum) pageNum.innerText = currentPage;
+// 8. DOCUMENT TABS SWITCHER
+function switchActiveDoc(idx) {
+  if (idx >= 0 && idx < currentAuditDocuments.length) {
+    activeDocIndex = idx;
+    activePageNumber = 1;
+    const tabsContainer = document.getElementById('docTabsContainer');
+    if (tabsContainer) {
+      const tabs = tabsContainer.querySelectorAll('.doc-tab');
+      tabs.forEach((t, i) => {
+        if (i === idx) t.classList.add('active');
+        else t.classList.remove('active');
+      });
+    }
+    renderActiveDocumentPage();
+  }
 }
 
-// 8. DOCUMENT TABS
 function selectDocTab(tabName) {
-  const tabOp = document.getElementById('tab-op-note');
-  const tabCms = document.getElementById('tab-cms-1500');
-  if (tabName === 'op-note') {
-    tabOp.classList.add('active');
-    tabCms.classList.remove('active');
-    selectFinding(1);
+  if (tabName === 'op-note' || tabName === 'tab-op-note') switchActiveDoc(0);
+  else if (tabName === 'cms-1500' || tabName === 'tab-cms-1500') switchActiveDoc(1);
+  else switchActiveDoc(0);
+}
+
+// 9. DYNAMIC MEDICAL DOCUMENT CANVAS RENDERER
+function renderActiveDocumentPage() {
+  const canvas = document.getElementById('medicalDocumentPage');
+  if (!canvas) return;
+
+  const doc = currentAuditDocuments[activeDocIndex] || (currentAuditDocuments[0] || {});
+  const totalPages = doc.page_count || (doc.pages ? doc.pages.length : 1);
+  activePageNumber = Math.max(1, Math.min(activePageNumber, totalPages));
+
+  // Pager indicator & button states
+  const curPageEl = document.getElementById('current-page-num');
+  const totalPagesEl = document.getElementById('total-pages-count');
+  const btnPrev = document.getElementById('btnPrevPage');
+  const btnNext = document.getElementById('btnNextPage');
+
+  if (curPageEl) curPageEl.innerText = activePageNumber;
+  if (totalPagesEl) totalPagesEl.innerText = totalPages;
+  if (btnPrev) btnPrev.classList.toggle('disabled', activePageNumber <= 1);
+  if (btnNext) btnNext.classList.toggle('disabled', activePageNumber >= totalPages);
+
+  // Active page text
+  const pageObj = doc.pages ? (doc.pages.find(p => p.page_number === activePageNumber) || doc.pages[activePageNumber - 1] || doc.pages[0]) : null;
+  const rawText = pageObj ? pageObj.text : '';
+
+  // Clinical Facts
+  const facts = (currentAuditData && currentAuditData.facts) ? currentAuditData.facts : {
+    patient_name: "Vance, Eleanor",
+    mrn: "#994-019-21",
+    dob: "05/12/1974 (50Y)",
+    lead_surgeon: "Dr. Marcus Chen, MD",
+    date_of_service: "09/14/2024",
+    pre_op_diagnosis: "Cholelithiasis with acute cholecystitis [ICD-10: K80.00]",
+    procedure_performed: "Laparoscopic cholecystectomy with intraoperative cholangiogram [CPT: 47563]"
+  };
+
+  // Check if current finding is cited on this page
+  const currentF = findingsData[currentFindingId];
+  const isFindingOnThisPage = currentF && (
+    currentF.page === activePageNumber || 
+    (currentF.fullQuote && rawText && rawText.includes(currentF.quote.replace(/“\.\.\.|\.\.\.”/g, '').trim().slice(0, 30)))
+  );
+
+  // Format paragraphs from extracted plain text
+  let narrativeHtml = '';
+  if (rawText) {
+    const lines = rawText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    const paragraphs = [];
+    let currentPara = [];
+    for (const line of lines) {
+      if (line.endsWith(':') || line === '--- PAGE BREAK ---' || line.startsWith('CHIEF') || line.startsWith('WARD') || line.startsWith('HOSPITAL') || line.startsWith('CLINICAL') || line.startsWith('FINAL')) {
+        if (currentPara.length > 0) {
+          paragraphs.push(currentPara.join(' '));
+          currentPara = [];
+        }
+        paragraphs.push(`<strong>${line}</strong>`);
+      } else {
+        currentPara.push(line);
+      }
+    }
+    if (currentPara.length > 0) paragraphs.push(currentPara.join(' '));
+
+    narrativeHtml = paragraphs.map(p => {
+      if (p.startsWith('<strong>')) {
+        return `<div class="clinical-section-title" style="margin-top:14px;">${p}</div>`;
+      }
+      return `<p class="narrative-paragraph">${p}</p>`;
+    }).join('');
   } else {
-    tabCms.classList.add('active');
-    tabOp.classList.remove('active');
-    selectFinding(2);
+    narrativeHtml = `<p class="narrative-paragraph">No text extracted for this page.</p>`;
+  }
+
+  // Highlight Box HTML
+  let calloutHtml = '';
+  if (isFindingOnThisPage && currentF) {
+    calloutHtml = `
+      <div class="audit-callout-highlight" id="docHighlightBox">
+        <div class="callout-header">
+          <div class="callout-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+            </svg>
+            ${currentF.calloutTitle || ('FINDING REFERENCE #' + currentFindingId + ' • ' + currentF.title.toUpperCase())}
+          </div>
+          <span class="line-badge">${currentF.lineRef || ('Page ' + activePageNumber)}</span>
+        </div>
+        <div class="callout-quote">${currentF.fullQuote || currentF.quote}</div>
+      </div>
+    `;
+  }
+
+  // Determine Hospital Name & Document Title
+  const docTitle = doc.doc_name ? doc.doc_name.replace(/\.[^/.]+$/, '').replace(/_/g, ' ').toUpperCase() : "CLINICAL AUDIT RECORD";
+  const hospitalName = (facts.patient_name === "Rahul Sharma" || facts.patient_name === "Ananya Sen") 
+    ? "METROPOLITAN MULTISPECIALTY HOSPITAL" 
+    : "ST. JUDE REGIONAL MEDICAL CENTER";
+
+  canvas.innerHTML = `
+    <!-- HOSPITAL LETTERHEAD -->
+    <div class="doc-hospital-header">
+      <div>
+        <h2 class="hospital-name">${hospitalName}</h2>
+        <h3 class="document-kind-title">${docTitle}</h3>
+        <div class="hospital-dept">Clinical Documentation & Health Informatics Adjudication Unit</div>
+      </div>
+      <div class="hospital-meta-right">
+        <div>MRN: ${facts.mrn || '#994-019-21'}</div>
+        <div>PAGE: ${activePageNumber} OF ${totalPages}</div>
+        <div class="confidential-tag">HIPAA CONFIDENTIAL RECORD</div>
+      </div>
+    </div>
+
+    <!-- PATIENT INFO GRID -->
+    <div class="patient-info-strip">
+      <div class="info-cell">
+        <span class="cell-label">PATIENT NAME</span>
+        <span class="cell-val">${facts.patient_name || 'Vance, Eleanor'}</span>
+      </div>
+      <div class="info-cell">
+        <span class="cell-label">DOB / AGE</span>
+        <span class="cell-val">${facts.dob || '05/12/1974 (50Y)'}</span>
+      </div>
+      <div class="info-cell">
+        <span class="cell-label">DATE OF RECORD</span>
+        <span class="cell-val">${facts.date_of_service || '09/14/2024'}</span>
+      </div>
+      <div class="info-cell">
+        <span class="cell-label">ATTENDING PHYSICIAN</span>
+        <span class="cell-val">${facts.lead_surgeon || 'Dr. Marcus Chen, MD'}</span>
+      </div>
+    </div>
+
+    <!-- CLINICAL SUMMARY FIELDS -->
+    <div class="clinical-line">
+      <strong>Clinical Diagnosis:</strong> ${facts.pre_op_diagnosis || 'Not specified'}
+    </div>
+    <div class="clinical-line">
+      <strong>Procedure / Service:</strong> ${facts.procedure_performed || 'Clinical Evaluation'}
+    </div>
+
+    <div class="doc-divider"></div>
+
+    <!-- NARRATIVE BODY & CITATIONS -->
+    <div class="clinical-section-title">EXTRACTED MEDICAL RECORD CONTENT (PAGE ${activePageNumber})</div>
+    ${calloutHtml}
+    <div class="narrative-content-wrap">
+      ${narrativeHtml}
+    </div>
+  `;
+
+  // Update Footer Bar
+  const footerStatusText = document.getElementById('footerStatusText');
+  const footerReadinessText = document.getElementById('footerReadinessText');
+  if (footerStatusText) {
+    footerStatusText.innerText = `Viewing Page ${activePageNumber} of ${totalPages} (${doc.doc_name || 'Record'}) — Corresponds to Finding #${currentFindingId}`;
+  }
+  if (footerReadinessText) {
+    footerReadinessText.innerText = (currentAuditData && currentAuditData.readiness_status) ? currentAuditData.readiness_status : 'REVIEW_REQUIRED';
   }
 }
 
@@ -623,83 +828,89 @@ async function runLiveReAudit() {
 }
 
 function renderAuditResultsToWorkspace(data) {
-  // Update Source Packet Banner
-  const packetLabelPill = document.querySelector('.packet-title-line .badge-green-pill');
-  const packetSubtext = document.querySelector('.packet-subtext');
+  if (!data) return;
+  console.log("Rendering Audit Results To Workspace:", data);
+
+  // 1. Update Source Packet Banner
+  const packetNameEl = document.getElementById('sourcePacketName');
+  const packetSubtext = document.getElementById('sourcePacketSubtext');
   
-  let fileNames = 'patient_packet_claim_8902_v2.zip (6.4 MB)';
-  let totalDocsCount = 1;
+  let displayName = 'patient_packet_claim_8902_v2.zip (6.4 MB)';
+  let totalDocsCount = (data.documents && data.documents.length) || 1;
   let totalPages = 3;
 
   if (data.documents && data.documents.length > 0) {
-    fileNames = data.documents.map(d => d.doc_name).join(', ');
-    totalDocsCount = data.documents.length;
+    displayName = data.documents.map(d => d.doc_name).join(', ');
     totalPages = data.documents.reduce((acc, d) => acc + (d.page_count || 1), 0);
-  } else if (uploadedFilesPayload && uploadedFilesPayload.length > 0) {
-    fileNames = uploadedFilesPayload.map(f => `${f.name} (${(f.size/1024).toFixed(1)} KB)`).join(', ');
-    totalDocsCount = uploadedFilesPayload.length;
+  } else if (stagedFiles && stagedFiles.length > 0) {
+    const totalBytes = stagedFiles.reduce((acc, f) => acc + f.size, 0);
+    displayName = `${stagedFiles.map(f => f.name).join(', ')} (${(totalBytes/1024).toFixed(1)} KB)`;
+    totalDocsCount = stagedFiles.length;
   }
 
-  if (packetLabelPill) {
-    packetLabelPill.innerHTML = `
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-        <polyline points="20 6 9 17 4 12"></polyline>
-      </svg>
-      ${fileNames}
-    `;
+  if (packetNameEl) {
+    packetNameEl.innerText = displayName;
   }
   if (packetSubtext) {
     packetSubtext.innerText = `Extracted ${totalDocsCount} document(s), ${totalPages} total pages. Ready for clinical review.`;
   }
 
-  // Update Patient Info Strip
-  if (data.facts) {
-    const cells = document.querySelectorAll('.patient-info-strip .info-cell .cell-val');
-    if (cells.length >= 4) {
-      cells[0].innerText = data.facts.patient_name || 'Vance, Eleanor';
-      cells[1].innerText = data.facts.dob || '05/12/1974 (50Y)';
-      cells[2].innerText = data.facts.date_of_service || '09/14/2024';
-      cells[3].innerText = data.facts.lead_surgeon || 'Dr. Marcus Chen, MD';
-    }
-    const clinicalLines = document.querySelectorAll('.clinical-line');
-    if (clinicalLines.length >= 3) {
-      clinicalLines[0].innerHTML = `<strong>Pre-operative Diagnosis:</strong> ${data.facts.pre_op_diagnosis}`;
-      clinicalLines[2].innerHTML = `<strong>Procedure Performed:</strong> ${data.facts.procedure_performed}`;
-    }
+  // Update claim badge
+  const claimBadge = document.getElementById('workspace-claim-badge');
+  if (claimBadge && (data.claim_id || data.packet_id)) {
+    claimBadge.innerText = `• Packet ID: #${data.claim_id || data.packet_id}`;
   }
 
-  // Update Document Tabs if multiple documents exist
+  // 2. Store audit data and update document tabs
+  currentAuditData = data;
   if (data.documents && data.documents.length > 0) {
-    const docTabsContainer = document.querySelector('.doc-tabs');
-    if (docTabsContainer) {
-      docTabsContainer.innerHTML = data.documents.map((d, i) => `
-        <button class="doc-tab ${i === 0 ? 'active' : ''}" id="tab-doc-${i}" onclick="switchActiveDoc(${i})">
-          📄 ${d.doc_name} (${d.page_count}p)
-        </button>
-      `).join('');
-    }
+    currentAuditDocuments = data.documents;
+    activeDocIndex = 0;
+    activePageNumber = 1;
   }
 
-  // Update Findings Data and Sidebar Cards
+  const tabsContainer = document.getElementById('docTabsContainer');
+  if (tabsContainer && currentAuditDocuments.length > 0) {
+    tabsContainer.innerHTML = currentAuditDocuments.map((d, i) => `
+      <button class="doc-tab ${i === activeDocIndex ? 'active' : ''}" id="tab-doc-${i}" onclick="switchActiveDoc(${i})">
+        📄 ${d.doc_name} (${d.page_count}p)
+      </button>
+    `).join('');
+  }
+
+  // 3. Process Findings Data
   if (data.findings && data.findings.length > 0) {
     findingsData = {};
     data.findings.forEach((f, idx) => {
       const num = idx + 1;
       const ev = (f.evidence && f.evidence.length > 0) ? f.evidence[0] : null;
       const matchingDraft = data.drafts ? data.drafts.find(d => d.finding_id === f.finding_id) : null;
+      
+      const quoteStr = ev ? (ev.evidence_quote || ev.quote || f.description || '') : (f.description || '');
+      const pageNum = ev ? (ev.source_page || ev.page || 1) : 1;
+      const docName = ev ? (ev.source_document || ev.doc_name || 'Document') : 'Document';
+      
+      let matchedDocIdx = 0;
+      if (currentAuditDocuments.length > 0 && ev) {
+        const found = currentAuditDocuments.findIndex(d => d.doc_name === docName);
+        if (found !== -1) matchedDocIdx = found;
+      }
+
       findingsData[num] = {
         id: `#${f.finding_id}`,
-        severity: f.severity,
-        title: f.title,
-        rule: `Rule: ${f.rule_id}`,
-        targetDoc: ev ? `${ev.doc_name || 'Document'}, Page ${ev.page || 1}` : 'Document, Page 1',
+        severity: f.severity || 'Critical',
+        title: f.title || 'Audit Finding',
+        description: f.description || f.title || '',
+        rule: `Rule: ${f.rule_id || 'LCD-2849'}`,
+        targetDoc: `${docName}, Page ${pageNum}`,
+        docIndex: matchedDocIdx,
         statusBadge: f.status === 'RESOLVED' ? 'Auto-Matched' : 'Pending Human Review',
-        quote: ev ? `“...${ev.quote.slice(0, 100)}...”` : `“...${f.description.slice(0, 100)}...”`,
-        fullQuote: ev ? `“...${ev.quote}...”` : `“...${f.description}...”`,
-        lineRef: ev ? `Page ${ev.page || 1}` : 'Line 12-15',
-        calloutTitle: `FINDING REFERENCE #${num} • ${f.title.toUpperCase()}`,
-        page: ev ? (ev.page || 1) : 1,
-        ticketText: matchingDraft ? matchingDraft.body : `MEMORANDUM: RETRIEVAL REQUEST\nCLAIM ID: ${data.packet_id}\nPATIENT: ${data.patient_name || 'Patient'}\n\nISSUE: ${f.title}\n${f.description}`
+        quote: quoteStr ? `“...${quoteStr.slice(0, 110)}...”` : `“...${(f.description || '').slice(0, 110)}...”`,
+        fullQuote: quoteStr ? `“...${quoteStr}...”` : `“...${f.description || ''}...”`,
+        lineRef: `Page ${pageNum}`,
+        calloutTitle: `FINDING REFERENCE #${num} • ${(f.title || 'FINDING').toUpperCase()}`,
+        page: pageNum,
+        ticketText: matchingDraft ? matchingDraft.body : `MEMORANDUM: RETRIEVAL REQUEST\nCLAIM ID: ${data.claim_id || data.packet_id}\nPATIENT: ${data.patient_name || 'Patient'}\n\nISSUE: ${f.title}\n${f.description}`
       };
     });
 
@@ -707,10 +918,10 @@ function renderAuditResultsToWorkspace(data) {
     if (cardsList) {
       cardsList.innerHTML = Object.keys(findingsData).map(k => {
         const f = findingsData[k];
-        const sevLower = f.severity.toLowerCase();
-        const sevBadge = sevLower.includes('crit') 
+        const sevLower = (f.severity || '').toLowerCase();
+        const sevBadge = (sevLower.includes('crit') || sevLower.includes('high')) 
           ? '<span class="badge badge-critical-solid">Critical</span>'
-          : (sevLower.includes('warn')
+          : ((sevLower.includes('warn') || sevLower.includes('med'))
             ? '<span class="badge badge-warning-solid">Warning</span>'
             : '<span class="badge badge-info-solid">Informational</span>');
         
@@ -724,7 +935,7 @@ function renderAuditResultsToWorkspace(data) {
               <span class="badge badge-pending-human" id="fnd-${k}-status">${f.statusBadge}</span>
             </div>
             <h4 class="card-title">${f.title}</h4>
-            <p class="card-description">${f.description || f.title}</p>
+            <p class="card-description">${f.description}</p>
             <div class="card-footer-action">
               <span class="doc-page-tag">📄 ${f.targetDoc}</span>
               <span class="inspect-link">Inspecting in viewer →</span>
@@ -738,9 +949,9 @@ function renderAuditResultsToWorkspace(data) {
     const headerCountBadge = document.querySelector('.findings-title-left .badge-gray-count');
     if (headerCountBadge) headerCountBadge.innerText = `${data.findings.length} Identified`;
 
-    const critCount = data.findings.filter(f => f.severity.toLowerCase().includes('crit')).length;
-    const warnCount = data.findings.filter(f => f.severity.toLowerCase().includes('warn')).length;
-    const infoCount = data.findings.filter(f => f.severity.toLowerCase().includes('info')).length;
+    const critCount = data.findings.filter(f => (f.severity || '').toLowerCase().includes('crit') || (f.severity || '').toLowerCase().includes('high')).length;
+    const warnCount = data.findings.filter(f => (f.severity || '').toLowerCase().includes('warn') || (f.severity || '').toLowerCase().includes('med')).length;
+    const infoCount = data.findings.filter(f => (f.severity || '').toLowerCase().includes('info') || (f.severity || '').toLowerCase().includes('low')).length;
 
     const pillsRow = document.querySelector('.finding-pills-row');
     if (pillsRow) {
@@ -750,9 +961,11 @@ function renderAuditResultsToWorkspace(data) {
         <span class="badge-count-pill badge-blue-count">${infoCount} Info</span>
       `;
     }
-
-    selectFinding(1);
   }
+
+  // 4. Render Active Document Page & Select First Finding
+  renderActiveDocumentPage();
+  selectFinding(1);
 }
 
 function updateDashboardWithNewAudit(data) {
@@ -855,6 +1068,7 @@ function filterHistoryTable() {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
+  renderActiveDocumentPage();
   selectFinding(1);
   loadLiveSupabaseData();
   setupDragAndDrop();
