@@ -1,0 +1,37 @@
+from enum import Enum
+
+class DocumentType(str, Enum):
+    ADMISSION_NOTE = "ADMISSION_NOTE"
+    DISCHARGE_SUMMARY = "DISCHARGE_SUMMARY"
+    PROGRESS_NOTE = "PROGRESS_NOTE"
+    LAB_REPORT = "LAB_REPORT"
+    RADIOLOGY_REPORT = "RADIOLOGY_REPORT"
+    FINAL_BILL = "FINAL_BILL"
+    NURSING_NOTE = "NURSING_NOTE"
+    OTHER = "OTHER"
+
+class InvestigationStatus(str, Enum):
+    ADVISED = "ADVISED"
+    PERFORMED = "PERFORMED"
+    CANCELLED = "CANCELLED"
+
+class SeverityLevel(str, Enum):
+    INFO = "INFO"
+    WARNING = "WARNING"
+    CRITICAL = "CRITICAL"
+
+class FindingStatus(str, Enum):
+    OPEN = "OPEN"
+    RESOLVED = "RESOLVED"
+    DISMISSED = "DISMISSED"
+
+class FindingCategory(str, Enum):
+    MISSING_DOCUMENT = "MISSING_DOCUMENT"
+    DISCREPANCY = "DISCREPANCY"
+    AMBIGUITY = "AMBIGUITY"
+    CHRONOLOGY_ERROR = "CHRONOLOGY_ERROR"
+
+class ReadinessStatus(str, Enum):
+    READY = "READY"
+    NEEDS_REVIEW = "NEEDS_REVIEW"
+    INCOMPLETE = "INCOMPLETE"

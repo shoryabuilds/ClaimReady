@@ -1,0 +1,7 @@
+pymupdf
+streamlit
+pydantic>=2.0
+pillow
+pytest
+pytest-mock
+google-genai
