@@ -1582,3 +1582,114 @@ body {
   resize: none;
   outline: none;
 }
+
+
+/* ============================================================
+   OFFICIAL CMS-1500 HEALTH INSURANCE CLAIM FORM STYLES
+   ============================================================ */
+.cms-form-wrapper {
+  background: #ffffff;
+  border: 2px solid #b91c1c;
+  border-radius: 4px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 11px;
+  color: #1e293b;
+  margin: 12px 0 20px 0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+.cms-header-band {
+  background: #fef2f2;
+  border-bottom: 2px solid #b91c1c;
+  padding: 8px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.cms-title-main {
+  font-weight: 800;
+  font-size: 13px;
+  color: #991b1b;
+  letter-spacing: 0.5px;
+}
+.cms-omb-badge {
+  font-size: 10px;
+  color: #7f1d1d;
+  font-weight: 600;
+}
+.cms-grid-row {
+  display: flex;
+  border-bottom: 1px solid #f87171;
+}
+.cms-box {
+  padding: 6px 8px;
+  border-right: 1px solid #f87171;
+  position: relative;
+}
+.cms-box:last-child {
+  border-right: none;
+}
+.cms-box-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: #991b1b;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+  display: block;
+}
+.cms-box-val {
+  font-size: 12px;
+  font-weight: 600;
+  color: #0f172a;
+}
+.cms-table-header {
+  background: #fee2e2;
+  padding: 6px 12px;
+  font-weight: 800;
+  font-size: 10px;
+  color: #991b1b;
+  border-bottom: 1px solid #b91c1c;
+  letter-spacing: 0.5px;
+}
+.cms-lines-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+.cms-lines-table th {
+  background: #fff5f5;
+  color: #7f1d1d;
+  font-weight: 700;
+  padding: 6px 8px;
+  border: 1px solid #fca5a5;
+  text-align: left;
+  font-size: 9px;
+}
+.cms-lines-table td {
+  padding: 6px 8px;
+  border: 1px solid #fca5a5;
+  color: #1e293b;
+}
+.cms-mismatch-row {
+  background-color: #fef2f2 !important;
+  font-weight: 700;
+}
+.cms-mismatch-badge {
+  background: #dc2626;
+  color: #ffffff;
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-left: 6px;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  letter-spacing: 0.3px;
+}
+.cms-footer-band {
+  background: #fef2f2;
+  padding: 6px 12px;
+  font-size: 9px;
+  color: #991b1b;
+  border-top: 1px solid #b91c1c;
+  display: flex;
+  justify-content: space-between;
+}
