@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClaimReady — AI Document Audit & Clinical Integrity</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-logo-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="m9 12 2 2 4-4"/>
+          </svg>
+        </div>
+        <div class="brand-meta">
+          <span class="brand-name">ClaimReady</span>
+          <span class="brand-tag">AI DOCUMENT AUDIT</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="nav-item active" id="nav-dashboard" onclick="switchView('dashboard')">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="7" height="7" x="3" y="3" rx="1"/>
+            <rect width="7" height="7" x="14" y="3" rx="1"/>
+            <rect width="7" height="7" x="14" y="14" rx="1"/>
+            <rect width="7" height="7" x="3" y="14" rx="1"/>
+          </svg>
+          <span>Dashboard</span>
+        </button>
+
+        <button class="nav-item" id="nav-workspace" onclick="switchView('workspace')">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="18" height="18" x="3" y="3" rx="2"/>
+            <path d="M3 9h18"/>
+            <path d="M9 21V9"/>
+          </svg>
+          <span>Workspace</span>
+        </button>
+
+        <button class="nav-item" id="nav-history" onclick="switchView('history')">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+            <path d="M3 3v5h5"/>
+            <path d="M12 7v5l4 2"/>
+          </svg>
+          <span>Audit History</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="footer-callout">
+          <svg class="shield-mini" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          <div class="callout-text">
+            <strong>AI Audit Assistant — Requires Clinical Human Review</strong>
+          </div>
+        </div>
+        <div class="version-badge">
+          <span>v1.4 Enterprise</span>
+          <span class="status-dot"></span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN APP CONTAINER -->
+    <div class="main-wrapper">
+      <!-- TOP GLOBAL HEADER -->
+      <header class="top-header">
+        <div class="top-left">
+          <div class="header-logo-mark">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="m9 12 2 2 4-4"/>
+            </svg>
+          </div>
+          <span class="header-title">ClaimReady</span>
+        </div>
+
+        <div class="top-right">
+          <div class="engine-badge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Production Audit Engine</span>
+          </div>
+          <div class="user-avatar" title="Auditor Profile">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+            </svg>
+          </div>
+        </div>
+      </header>
+
+      <!-- VIEW 1: DASHBOARD -->
+      <main class="view-panel active" id="view-dashboard">
+        <div class="content-header-row">
+          <div class="content-header-text">
+            <h1 class="page-heading">Welcome to ClaimReady</h1>
+            <p class="page-subheading">
+              AI-powered health insurance claim document auditing. Review medical documents, identify missing information, and prepare claim packets for human review.
+            </p>
+          </div>
+          <button class="btn btn-primary" onclick="openNewAuditModal()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>New Audit</span>
+          </button>
+        </div>
+
+        <!-- STAT KPI CARDS -->
+        <section class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-title">Total Audits</span>
+              <div class="stat-icon-wrap">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2">
+                  <path d="M21 8v13H3V8"/>
+                  <path d="M1 3h22v5H1z"/>
+                  <path d="M10 12h4"/>
+                </svg>
+              </div>
+            </div>
+            <div class="stat-value" id="stat-total-audits">142</div>
+            <div class="stat-desc">All historical claim packets</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-title">Needs Attention</span>
+              <span class="badge badge-pill badge-red-soft">• Requires Action</span>
+            </div>
+            <div class="stat-value" id="stat-needs-attention">18</div>
+            <div class="stat-desc">Flagged missing reports or discrepancies</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-title">Ready for Human Review</span>
+              <span class="badge badge-pill badge-green-soft">• Validated</span>
+            </div>
+            <div class="stat-value" id="stat-ready-review">34</div>
+            <div class="stat-desc">Preliminary checks passed</div>
+          </div>
+        </section>
+
+        <!-- RECENT AUDITS TABLE -->
+        <section class="table-section">
+          <div class="table-header-bar">
+            <h2 class="section-title">Recent Audits</h2>
+            <span class="section-meta">LATEST 5 PROCESSING CYCLES</span>
+          </div>
+
+          <div class="table-card">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Claim / Audit ID</th>
+                  <th>Last Audited</th>
+                  <th>Status</th>
+                  <th class="text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="dashboard-recent-audits">
+                <tr>
+                  <td class="font-medium text-dark">
+                    <span class="doc-icon-prefix">📄</span> Claim #CR-2024-8902
+                  </td>
+                  <td class="text-muted">Oct 24, 2024, 02:15 PM</td>
+                  <td><span class="badge badge-pill badge-red-soft">• Needs Attention</span></td>
+                  <td class="text-right">
+                    <button class="action-link-btn" onclick="openClaimWorkspace('CR-2024-8902')">
+                      Open in Workspace <span class="arrow-icon">→</span>
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="font-medium text-dark">
+                    <span class="doc-icon-prefix">📄</span> Claim #CR-2024-8894
+                  </td>
+                  <td class="text-muted">Oct 24, 2024, 11:40 AM</td>
+                  <td><span class="badge badge-pill badge-green-soft">• Ready for Review</span></td>
+                  <td class="text-right">
+                    <button class="action-link-btn" onclick="openClaimWorkspace('CR-2024-8894')">
+                      Open in Workspace <span class="arrow-icon">→</span>
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="font-medium text-dark">
+                    <span class="doc-icon-prefix">📄</span> Claim #CR-2024-8871
+                  </td>
+                  <td class="text-muted">Oct 23, 2024, 04:30 PM</td>
+                  <td><span class="badge badge-pill badge-green-soft">• Ready for Review</span></td>
+                  <td class="text-right">
+                    <button class="action-link-btn" onclick="openClaimWorkspace('CR-2024-8871')">
+                      Open in Workspace <span class="arrow-icon">→</span>
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="font-medium text-dark">
+                    <span class="doc-icon-prefix">📄</span> Claim #CR-2024-8850
+                  </td>
+                  <td class="text-muted">Oct 23, 2024, 01:10 PM</td>
+                  <td><span class="badge badge-pill badge-red-soft">• Missing Documents</span></td>
+                  <td class="text-right">
+                    <button class="action-link-btn" onclick="openClaimWorkspace('CR-2024-8850')">
+                      Open in Workspace <span class="arrow-icon">→</span>
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="font-medium text-dark">
+                    <span class="doc-icon-prefix">📄</span> Claim #CR-2024-8812
+                  </td>
+                  <td class="text-muted">Oct 22, 2024, 09:45 AM</td>
+                  <td><span class="badge badge-pill badge-gray">• Human Review Completed</span></td>
+                  <td class="text-right">
+                    <button class="action-link-muted" onclick="openClaimWorkspace('CR-2024-8812')">
+                      View Summary <span class="eye-icon">👁</span>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- FOOTER NOTICE -->
+        <div class="bottom-disclaimer">
+          <div class="info-circle-icon">ℹ</div>
+          <span>ClaimReady provides automated audit assistance. Final decisions require licensed adjudicator verification.</span>
+        </div>
+      </main>
+
+      <!-- VIEW 2: CLAIM AUDIT WORKSPACE -->
+      <main class="view-panel" id="view-workspace">
+        <div class="workspace-header-row">
+          <div>
+            <h1 class="page-heading">Claim Audit Workspace</h1>
+            <p class="page-subheading">
+              Upload a document packet to review potential claim issues and diagnostic audit trails.
+            </p>
+          </div>
+          <div>
+            <span class="badge badge-pill badge-blue-soft" id="workspace-claim-badge">
+              • Packet ID: #CLM-8902-NY
+            </span>
+          </div>
+        </div>
+
+        <!-- SOURCE PACKET ACTION BAR -->
+        <div class="source-packet-bar">
+          <div class="packet-meta-card">
+            <div class="folder-icon-wrap">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+              </svg>
+            </div>
+            <div>
+              <div class="packet-title-line">
+                <span class="packet-label">Source Packet</span>
+                <span class="badge badge-green-pill">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  patient_packet_claim_8902_v2.zip (6.4 MB)
+                </span>
+              </div>
+              <p class="packet-subtext">All clinical notes, CMS-1500, pre-auth credentials, and lab sheets extracted (4 items).</p>
+            </div>
+          </div>
+
+          <div class="packet-actions-group">
+            <button class="btn btn-secondary" onclick="triggerAddDocuments()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="12" y1="18" x2="12" y2="12"/>
+                <line x1="9" y1="15" x2="15" y2="15"/>
+              </svg>
+              <span>Add Documents</span>
+            </button>
+            <button class="btn btn-secondary" onclick="runLiveReAudit()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+              </svg>
+              <span>Rerun Audit</span>
+            </button>
+            <button class="btn btn-primary" onclick="executeFullRun()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="5 3 19 12 5 21 5 3"/>
+              </svg>
+              <span>Run Audit</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- SPLIT VIEWER (DOCUMENT CANVAS + FINDINGS SIDEBAR) -->
+        <div class="split-view-grid">
+          <!-- LEFT: DOCUMENT VIEWER -->
+          <div class="doc-viewer-panel">
+            <div class="doc-toolbar">
+              <div class="doc-tabs">
+                <button class="doc-tab active" id="tab-op-note" onclick="selectDocTab('op-note')">
+                  📄 Operative Report (p.3)
+                </button>
+                <button class="doc-tab" id="tab-cms-1500" onclick="selectDocTab('cms-1500')">
+                  📋 CMS-1500
+                </button>
+              </div>
+
+              <div class="doc-page-controls">
+                <button class="pager-btn" onclick="prevPage()">‹</button>
+                <span class="pager-label">Page <span id="current-page-num">3</span> of 8</span>
+                <button class="pager-btn" onclick="nextPage()">›</button>
+              </div>
+
+              <div class="doc-zoom-controls">
+                <button class="zoom-btn" onclick="adjustZoom(-10)">-</button>
+                <span class="zoom-level" id="zoom-text">100%</span>
+                <button class="zoom-btn" onclick="adjustZoom(10)">+</button>
+                <button class="btn-fit-width" onclick="resetZoom()">Fit Width</button>
+              </div>
+            </div>
+
+            <!-- DOCUMENT CANVAS CONTAINER -->
+            <div class="doc-canvas-scroll" id="docCanvasContainer">
+              <div class="doc-page-canvas" id="medicalDocumentPage">
+                <!-- HOSPITAL LETTERHEAD -->
+                <div class="doc-hospital-header">
+                  <div>
+                    <h2 class="hospital-name">ST. JUDE REGIONAL MEDICAL CENTER</h2>
+                    <h3 class="document-kind-title">Surgical Operative Note</h3>
+                    <div class="hospital-dept">Department of Surgery • Division of Hepatobiliary</div>
+                  </div>
+                  <div class="hospital-meta-right">
+                    <div>MRN: #994-019-21</div>
+                    <div>ACCT: #NY-8902</div>
+                    <div class="confidential-tag">CONFIDENTIAL RECORD</div>
+                  </div>
+                </div>
+
+                <!-- PATIENT INFO GRID -->
+                <div class="patient-info-strip">
+                  <div class="info-cell">
+                    <span class="cell-label">PATIENT NAME</span>
+                    <span class="cell-val">Vance, Eleanor</span>
+                  </div>
+                  <div class="info-cell">
+                    <span class="cell-label">DOB / AGE</span>
+                    <span class="cell-val">05/12/1974 (50Y)</span>
+                  </div>
+                  <div class="info-cell">
+                    <span class="cell-label">DATE OF SURGERY</span>
+                    <span class="cell-val">09/14/2024</span>
+                  </div>
+                  <div class="info-cell">
+                    <span class="cell-label">LEAD SURGEON</span>
+                    <span class="cell-val">Dr. Marcus Chen, MD</span>
+                  </div>
+                </div>
+
+                <!-- CLINICAL SUMMARY FIELDS -->
+                <div class="clinical-line">
+                  <strong>Pre-operative Diagnosis:</strong> Cholelithiasis with acute cholecystitis <span class="code-tag">[ICD-10: K80.00]</span>
+                </div>
+                <div class="clinical-line">
+                  <strong>Post-operative Diagnosis:</strong> Cholelithiasis with acute cholecystitis, resolved with intact extraction
+                </div>
+                <div class="clinical-line">
+                  <strong>Procedure Performed:</strong> Laparoscopic cholecystectomy with intraoperative cholangiogram <span class="code-tag">[CPT: 47563]</span>
+                </div>
+                <div class="clinical-line">
+                  <strong>Anesthesia:</strong> General endotracheal anesthesia. ASA Physical Status III.
+                </div>
+
+                <div class="doc-divider"></div>
+
+                <!-- NARRATIVE BODY -->
+                <div class="clinical-section-title">CLINICAL INDICATION & OPERATIVE NARRATIVE</div>
+                <p class="narrative-paragraph">
+                  The patient is a 50-year-old female admitted via the Emergency Department presenting with recurrent acute right upper quadrant pain radiating into the epigastrium and scapular region, accompanied by elevated leukocytosis and mild transaminitis.
+                </p>
+
+                <!-- CITATION CALLOUT / BOUNDING BOX HIGHLIGHT -->
+                <div class="audit-callout-highlight" id="docHighlightBox">
+                  <div class="callout-header">
+                    <div class="callout-title">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                      </svg>
+                      FINDING REFERENCE #1 • IMAGING AUDIT DISCREPANCY
+                    </div>
+                    <span class="line-badge">Line 42-45</span>
+                  </div>
+                  <div class="callout-quote">
+                    “...Surgical indication confirmed via pre-operative transabdominal ultrasonography dated 09/10/2024 at Westside Imaging. Gallbladder distended with multiple shadowing calculi and sonographic Murphy sign positive...”
+                  </div>
+                </div>
+
+                <p class="narrative-paragraph">
+                  Under standard sterile prep, four trocars were inserted. The gall bladder fundus was grasped and retracted cephalad. Calot's triangle was meticulously skeletonized. The cystic duct and cystic artery were double clipped and divided cleanly without thermal injury.
+                </p>
+              </div>
+            </div>
+
+            <!-- DOCUMENT STATUS FOOTER BAR -->
+            <div class="doc-footer-status">
+              <div class="status-left">
+                <span class="status-indicator-blue"></span>
+                <span>Viewing Page 3 (Operative Findings) — Corresponds to Finding #1</span>
+              </div>
+              <div class="status-right">
+                <span>OCR Fidelity: <strong>99.4%</strong></span>
+                <span class="pipe-sep">|</span>
+                <span>Policy Rule: <strong>LCD-2849</strong></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT: AUDIT FINDINGS & RESOLUTION SIDEBAR -->
+          <div class="findings-sidebar-panel">
+            <div class="findings-header-wrap">
+              <div class="findings-title-row">
+                <div class="findings-title-left">
+                  <h3 class="findings-heading">Audit Findings</h3>
+                  <span class="badge badge-pill badge-gray-count">3 Identified</span>
+                </div>
+                <div class="finding-pills-row">
+                  <span class="badge-count-pill badge-red-count">1 Critical</span>
+                  <span class="badge-count-pill badge-amber-count">1 Warning</span>
+                  <span class="badge-count-pill badge-blue-count">1 Info</span>
+                </div>
+              </div>
+              <p class="findings-subtitle">Automated discrepancy and claim risk analysis</p>
+            </div>
+
+            <!-- FINDINGS LIST -->
+            <div class="findings-cards-list">
+              <!-- FINDING 1 (ACTIVE) -->
+              <div class="finding-card active" id="fnd-card-1" onclick="selectFinding(1)">
+                <div class="card-meta-row">
+                  <div class="card-meta-left">
+                    <span class="badge badge-critical-solid">Critical</span>
+                    <span class="badge-ref-id">#FND-01</span>
+                  </div>
+                  <span class="badge badge-pending-human" id="fnd-1-status">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    Pending Human Review
+                  </span>
+                </div>
+                <h4 class="card-title">Missing ultrasound diagnostic report</h4>
+                <p class="card-description">
+                  Operative note explicitly documents a pre-operative ultrasound performed on 09/10/2024 (Westside Imaging), but diagnostic radiology record is absent from this claim packet.
+                </p>
+                <div class="card-footer-action">
+                  <span class="doc-page-tag">📄 Operative Report (Page 3)</span>
+                  <span class="inspect-link">Inspecting in viewer →</span>
+                </div>
+              </div>
+
+              <!-- FINDING 2 -->
+              <div class="finding-card" id="fnd-card-2" onclick="selectFinding(2)">
+                <div class="card-meta-row">
+                  <div class="card-meta-left">
+                    <span class="badge badge-warning-solid">Warning</span>
+                    <span class="badge-ref-id">#FND-02</span>
+                  </div>
+                  <span class="badge badge-unreviewed" id="fnd-2-status">Unreviewed</span>
+                </div>
+                <h4 class="card-title">Medical date mismatch across billing lines</h4>
+                <p class="card-description">
+                  Service date on Box 24A of CMS-1500 (09/15/2024) differs by 24h from surgical completion log & inpatient admission slip (09/14/2024).
+                </p>
+                <div class="card-tags-row">
+                  <span class="doc-page-tag">📋 CMS-1500 (Line 24A)</span>
+                  <span class="risk-tag">Payer Denials: High Risk</span>
+                </div>
+              </div>
+
+              <!-- FINDING 3 -->
+              <div class="finding-card" id="fnd-card-3" onclick="selectFinding(3)">
+                <div class="card-meta-row">
+                  <div class="card-meta-left">
+                    <span class="badge badge-info-solid">Informational</span>
+                    <span class="badge-ref-id">#FND-03</span>
+                  </div>
+                  <span class="badge badge-auto-matched">Auto-Matched</span>
+                </div>
+                <h4 class="card-title">Pre-authorization Code Verified</h4>
+                <p class="card-description">
+                  Pre-authorization credential #AUTH-9921 matched carrier database for procedure CPT 47563 with full prior approval.
+                </p>
+              </div>
+            </div>
+
+            <!-- RESOLUTION WORKSPACE CARD -->
+            <div class="resolution-card">
+              <div class="resolution-header">
+                <div class="res-title-left">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="4" y1="21" x2="4" y2="14"></line>
+                    <line x1="4" y1="10" x2="4" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12" y2="3"></line>
+                    <line x1="20" y1="21" x2="20" y2="16"></line>
+                    <line x1="20" y1="12" x2="20" y2="3"></line>
+                    <line x1="1" y1="14" x2="7" y2="14"></line>
+                    <line x1="9" y1="8" x2="15" y2="8"></line>
+                    <line x1="17" y1="16" x2="23" y2="16"></line>
+                  </svg>
+                  <strong id="resCardTitle">Resolution Workspace (Finding #1)</strong>
+                </div>
+                <span class="res-rule-tag" id="resRuleTag">Rule: Missing Evidence (Rad)</span>
+              </div>
+
+              <div class="res-target-row">
+                <span class="res-label">Target Record:</span>
+                <span class="res-val" id="resTargetRecord">Operative Note, Page 3</span>
+              </div>
+
+              <div class="res-quote-box" id="resCitationQuote">
+                “...Indication confirmed via pre-operative transabdominal ultrasonography dated 09/10/2024 at Westside...”
+              </div>
+
+              <div class="res-buttons-row">
+                <button class="btn btn-dark-full" onclick="openRetrievalTicketModal()">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  <span>Generate Retrieval Ticket</span>
+                </button>
+                <button class="btn btn-outline-success" onclick="markCurrentFindingReviewed()">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span>Mark Reviewed</span>
+                </button>
+              </div>
+
+              <div class="res-footer-note">
+                <span class="info-icon">ℹ</span> AI audit assistance requires clinical human review prior to insurer submission.
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- VIEW 3: AUDIT HISTORY -->
+      <main class="view-panel" id="view-history">
+        <div class="content-header-row">
+          <div class="content-header-text">
+            <h1 class="page-heading">Audit History</h1>
+            <p class="page-subheading">View your previous claim document audits.</p>
+          </div>
+          <div class="search-input-wrap">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="historySearchInput" placeholder="Search by Claim ID, patient, or date..." onkeyup="filterHistoryTable()">
+          </div>
+        </div>
+
+        <div class="table-card">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Claim / Audit ID</th>
+                <th>Date and time</th>
+                <th>Audit status</th>
+                <th class="text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="historyTableBody">
+              <tr>
+                <td class="font-medium text-dark">Claim #CR-2024-8902</td>
+                <td class="text-muted">Oct 24, 2024 • 02:15 PM</td>
+                <td><span class="badge badge-pill badge-red-soft">• Needs Attention</span></td>
+                <td class="text-right">
+                  <button class="action-link-btn" onclick="openClaimWorkspace('CR-2024-8902')">
+                    View Audit <span class="arrow-icon">→</span>
+                  </button>
+                </td>
+              </tr>
+              <tr>
+                <td class="font-medium text-dark">Claim #CR-2024-8894</td>
+                <td class="text-muted">Oct 24, 2024 • 11:40 AM</td>
+                <td><span class="badge badge-pill badge-green-soft">• Ready for Review</span></td>
+                <td class="text-right">
+                  <button class="action-link-btn" onclick="openClaimWorkspace('CR-2024-8894')">
+                    View Audit <span class="arrow-icon">→</span>
+                  </button>
+                </td>
+              </tr>
+              <tr>
+                <td class="font-medium text-dark">Claim #CR-2024-8871</td>
+                <td class="text-muted">Oct 23, 2024 • 04:30 PM</td>
+                <td><span class="badge badge-pill badge-green-soft">• Ready for Review</span></td>
+                <td class="text-right">
+                  <button class="action-link-btn" onclick="openClaimWorkspace('CR-2024-8871')">
+                    View Audit <span class="arrow-icon">→</span>
+                  </button>
+                </td>
+              </tr>
+              <tr>
+                <td class="font-medium text-dark">Claim #CR-2024-8850</td>
+                <td class="text-muted">Oct 23, 2024 • 01:10 PM</td>
+                <td><span class="badge badge-pill badge-red-soft">• Needs Attention</span></td>
+                <td class="text-right">
+                  <button class="action-link-btn" onclick="openClaimWorkspace('CR-2024-8850')">
+                    View Audit <span class="arrow-icon">→</span>
+                  </button>
+                </td>
+              </tr>
+              <tr>
+                <td class="font-medium text-dark">Claim #CR-2024-8812</td>
+                <td class="text-muted">Oct 22, 2024 • 09:45 AM</td>
+                <td><span class="badge badge-pill badge-gray">• Human Review Completed</span></td>
+                <td class="text-right">
+                  <button class="action-link-btn" onclick="openClaimWorkspace('CR-2024-8812')">
+                    View Audit <span class="arrow-icon">→</span>
+                  </button>
+                </td>
+              </tr>
+              <tr>
+                <td class="font-medium text-dark">Claim #CR-2024-8790</td>
+                <td class="text-muted">Oct 21, 2024 • 03:20 PM</td>
+                <td><span class="badge badge-pill badge-gray">• Human Review Completed</span></td>
+                <td class="text-right">
+                  <button class="action-link-btn" onclick="openClaimWorkspace('CR-2024-8790')">
+                    View Audit <span class="arrow-icon">→</span>
+                  </button>
+                </td>
+              </tr>
+              <tr>
+                <td class="font-medium text-dark">Claim #CR-2024-8755</td>
+                <td class="text-muted">Oct 20, 2024 • 10:15 AM</td>
+                <td><span class="badge badge-pill badge-gray">• Human Review Completed</span></td>
+                <td class="text-right">
+                  <button class="action-link-btn" onclick="openClaimWorkspace('CR-2024-8755')">
+                    View Audit <span class="arrow-icon">→</span>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="pagination-bar">
+            <span class="pagination-count">Showing <strong>1 to 7</strong> of <strong>48</strong> total claim audits</span>
+            <div class="pagination-buttons">
+              <button class="btn-page-ctrl disabled">‹ Previous</button>
+              <button class="btn-page-ctrl">Next ›</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="hipaa-compliance-note">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="m9 12 2 2 4-4"/>
+          </svg>
+          <span>All audit records are archived for 7 years under HIPAA compliance standards. Audit outcomes are assistive indicators requiring authorized human sign-off.</span>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- MODAL 1: NEW AUDIT INTAKE -->
+  <div class="modal-backdrop" id="newAuditModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Initiate New Claim Audit</h3>
+        <button class="modal-close-btn" onclick="closeModal('newAuditModal')">×</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">Select a preset clinical scenario or upload a multi-page PDF packet for AI extraction.</p>
+        
+        <div class="form-group">
+          <label class="form-label">Select Demo Scenario:</label>
+          <select id="scenarioSelector" class="form-select" onchange="handleScenarioSelect()">
+            <option value="scenario_01">Scenario 1: Advised vs Performed (Missing ECG, Cancelled USG)</option>
+            <option value="scenario_02">Scenario 2: Chronology Mismatch & Ambiguous Date (04/05/26)</option>
+            <option value="scenario_03">Scenario 3: Diagnostic Evolution vs Contradiction</option>
+            <option value="custom">Custom PDF Packet Upload</option>
+          </select>
+        </div>
+
+        <div class="file-drop-zone" id="fileDropZone">
+          <input type="file" id="pdfFileInput" accept=".pdf,.zip" style="display:none" onchange="handleFileSelected(event)">
+          <div onclick="document.getElementById('pdfFileInput').click()" style="cursor:pointer">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <div class="drop-text-main">Click to select or drag and drop PDF packet</div>
+            <div class="drop-text-sub">Supports multi-page CMS-1500, Operative Notes, and Lab ZIPs (up to 50MB)</div>
+          </div>
+          <div id="selectedFileName" class="selected-file-indicator"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('newAuditModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="startAuditFromModal()">
+          <span>Run AI Audit</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: RESOLUTION RETRIEVAL TICKET DRAFT -->
+  <div class="modal-backdrop" id="ticketModal">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-header">
+        <div class="ticket-header-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
+            <rect width="18" height="18" x="3" y="3" rx="2"/>
+            <line x1="9" y1="3" x2="9" y2="21"/>
+          </svg>
+          <h3 class="modal-title">Clinical Record Retrieval Request — Ticket #RET-2024-8902</h3>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('ticketModal')">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="ticket-status-pill-row">
+          <span class="badge badge-pill badge-blue-soft">Target: Westside Imaging Records Dept</span>
+          <span class="badge badge-pill badge-red-soft">Priority: High (48h Pre-Adjudication)</span>
+        </div>
+        <textarea class="ticket-textarea" id="ticketContentText" readonly></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="copyTicketText()">
+          <span>📋 Copy Text</span>
+        </button>
+        <button class="btn btn-primary" onclick="downloadTicketPDF()">
+          <span>Export Document (.txt)</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
