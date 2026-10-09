@@ -436,10 +436,17 @@ function downloadTicketPDF() {
 }
 
 function handleFileSelected(e) {
-  const file = e.target.files[0];
-  if (file) {
+  const files = e.target.files;
+  if (files && files.length > 0) {
     const indicator = document.getElementById('selectedFileName');
-    if (indicator) indicator.innerText = `Selected: ${file.name} (${(file.size / (1024*1024)).toFixed(2)} MB)`;
+    if (indicator) {
+      if (files.length === 1) {
+        indicator.innerText = `Selected: ${files[0].name} (${(files[0].size / 1024).toFixed(1)} KB)`;
+      } else {
+        const names = Array.from(files).map(f => f.name).join(', ');
+        indicator.innerText = `Selected ${files.length} files: ${names}`;
+      }
+    }
   }
 }
 
