@@ -27,7 +27,7 @@ async function fetchSupabase(endpoint) {
 let livePackets = [];
 let liveFindings = [];
 
-const findingsData = {
+let findingsData = {
   1: {
     id: "#FND-01",
     severity: "Critical",
@@ -267,10 +267,10 @@ function selectFinding(id) {
   if (!f) return;
 
   // Update cards active state
-  [1, 2, 3].forEach(num => {
+  Object.keys(findingsData).forEach(num => {
     const card = document.getElementById(`fnd-card-${num}`);
     if (card) {
-      if (num === id) {
+      if (num == id) {
         card.classList.add('active');
       } else {
         card.classList.remove('active');
@@ -479,8 +479,10 @@ function setupDragAndDrop() {
   }, false);
 }
 
+let stagedFiles = [];
+
 function processFiles(files) {
-  uploadedFilesPayload = [];
+  stagedFiles = Array.from(files);
   const indicator = document.getElementById('selectedFileName');
   const selector = document.getElementById('scenarioSelector');
 
@@ -489,27 +491,12 @@ function processFiles(files) {
     currentScenario = 'custom';
   }
 
-  const fileList = Array.from(files);
-  const names = fileList.map(f => f.name).join(', ');
-  const totalKb = (fileList.reduce((acc, f) => acc + f.size, 0) / 1024).toFixed(1);
+  const names = stagedFiles.map(f => f.name).join(', ');
+  const totalKb = (stagedFiles.reduce((acc, f) => acc + f.size, 0) / 1024).toFixed(1);
 
   if (indicator) {
-    indicator.innerText = `Selected ${fileList.length} document(s): ${names} (${totalKb} KB)`;
+    indicator.innerText = `Selected ${stagedFiles.length} document(s): ${names} (${totalKb} KB)`;
   }
-
-  fileList.forEach(file => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const base64 = e.target.result.split(',')[1] || '';
-      uploadedFilesPayload.push({
-        name: file.name,
-        size: file.size,
-        base64: base64
-      });
-      console.log(`Loaded ${file.name} for AI extraction.`);
-    };
-    reader.readAsDataURL(file);
-  });
 }
 
 function handleFileSelected(e) {
@@ -520,17 +507,17 @@ function handleFileSelected(e) {
 }
 
 let currentScenario = 'scenario_01';
-let currentPacketId = 'CR-2024-8902';
+let currentPacketId = 'CR-2024-' + Math.floor(1000 + Math.random() * 9000);
 
 function handleScenarioSelect() {
   const selector = document.getElementById('scenarioSelector');
   const indicator = document.getElementById('selectedFileName');
   currentScenario = selector.value;
   if (selector.value !== 'custom') {
-    uploadedFilesPayload = [];
+    stagedFiles = [];
     if (indicator) indicator.innerText = `Preset loaded: ${selector.options[selector.selectedIndex].text}`;
   } else {
-    if (indicator && uploadedFilesPayload.length === 0) indicator.innerText = '';
+    if (indicator && stagedFiles.length === 0) indicator.innerText = '';
   }
 }
 
@@ -552,7 +539,8 @@ async function runLiveReAudit() {
     runBtn.disabled = true;
   }
 
-  console.log(`🚀 Starting Live Audit: scenario=${currentScenario}, packet=${currentPacketId}, customFiles=${uploadedFilesPayload.length}`);
+  currentPacketId = 'CR-2024-' + Math.floor(1000 + Math.random() * 9000);
+  console.log(`🚀 Starting Live Audit: scenario=${currentScenario}, packet=${currentPacketId}, files=${stagedFiles.length}`);
 
   try {
     const payload = {
@@ -560,8 +548,23 @@ async function runLiveReAudit() {
       packet_id: currentPacketId
     };
 
-    if (currentScenario === 'custom' && uploadedFilesPayload.length > 0) {
-      payload.custom_files = uploadedFilesPayload;
+    if (currentScenario === 'custom' && stagedFiles.length > 0) {
+      const filePromises = stagedFiles.map(file => {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const b64 = (e.target.result || '').split(',')[1] || '';
+            resolve({
+              name: file.name,
+              size: file.size,
+              base64: b64
+            });
+          };
+          reader.onerror = () => resolve({ name: file.name, size: file.size, base64: '' });
+          reader.readAsDataURL(file);
+        });
+      });
+      payload.custom_files = await Promise.all(filePromises);
     }
 
     const res = await fetch('/api/audit/run', {
@@ -578,16 +581,22 @@ async function runLiveReAudit() {
     console.log("✅ Audit Finished:", data);
 
     if (data.status === "success") {
-      alert(`🎉 Live Audit Completed!\nRun ID: ${data.run_id}\nReadiness Status: ${data.readiness_status}\nFindings Identified: ${data.total_findings}\n\nSaved to Supabase successfully!`);
-      
-      // Update badge
+      // 1. Update Workspace with newly uploaded files and findings
+      renderAuditResultsToWorkspace(data);
+
+      // 2. Increment Dashboard KPI cards and prepend new audit to tables
+      updateDashboardWithNewAudit(data);
+
+      // 3. Update claim badge
       const badge = document.getElementById('workspace-claim-badge');
       if (badge && data.claim_id) {
         badge.innerText = `• Packet ID: #${data.claim_id}`;
       }
 
-      // Reload live Supabase records in Dashboard & History
-      await loadLiveSupabaseData();
+      // 4. Switch directly to workspace so user sees their new audit results immediately
+      switchView('workspace');
+
+      alert(`🎉 Live Audit Completed!\nClaim ID: ${data.claim_id || data.packet_id}\nPatient: ${data.patient_name || 'Eleanor Vance'}\nReadiness Status: ${data.readiness_status}\nFindings Identified: ${data.total_findings}\n\nWorkspace and Dashboard cards updated & synced with Supabase!`);
     } else {
       alert(`Audit completed with note: ${data.message || 'Check logs'}`);
     }
@@ -598,6 +607,216 @@ async function runLiveReAudit() {
     if (runBtn) {
       runBtn.innerHTML = originalHtml;
       runBtn.disabled = false;
+    }
+  }
+}
+
+function renderAuditResultsToWorkspace(data) {
+  // Update Source Packet Banner
+  const packetLabelPill = document.querySelector('.packet-title-line .badge-green-pill');
+  const packetSubtext = document.querySelector('.packet-subtext');
+  
+  let fileNames = 'patient_packet_claim_8902_v2.zip (6.4 MB)';
+  let totalDocsCount = 1;
+  let totalPages = 3;
+
+  if (data.documents && data.documents.length > 0) {
+    fileNames = data.documents.map(d => d.doc_name).join(', ');
+    totalDocsCount = data.documents.length;
+    totalPages = data.documents.reduce((acc, d) => acc + (d.page_count || 1), 0);
+  } else if (uploadedFilesPayload && uploadedFilesPayload.length > 0) {
+    fileNames = uploadedFilesPayload.map(f => `${f.name} (${(f.size/1024).toFixed(1)} KB)`).join(', ');
+    totalDocsCount = uploadedFilesPayload.length;
+  }
+
+  if (packetLabelPill) {
+    packetLabelPill.innerHTML = `
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+      ${fileNames}
+    `;
+  }
+  if (packetSubtext) {
+    packetSubtext.innerText = `Extracted ${totalDocsCount} document(s), ${totalPages} total pages. Ready for clinical review.`;
+  }
+
+  // Update Patient Info Strip
+  if (data.facts) {
+    const cells = document.querySelectorAll('.patient-info-strip .info-cell .cell-val');
+    if (cells.length >= 4) {
+      cells[0].innerText = data.facts.patient_name || 'Vance, Eleanor';
+      cells[1].innerText = data.facts.dob || '05/12/1974 (50Y)';
+      cells[2].innerText = data.facts.date_of_service || '09/14/2024';
+      cells[3].innerText = data.facts.lead_surgeon || 'Dr. Marcus Chen, MD';
+    }
+    const clinicalLines = document.querySelectorAll('.clinical-line');
+    if (clinicalLines.length >= 3) {
+      clinicalLines[0].innerHTML = `<strong>Pre-operative Diagnosis:</strong> ${data.facts.pre_op_diagnosis}`;
+      clinicalLines[2].innerHTML = `<strong>Procedure Performed:</strong> ${data.facts.procedure_performed}`;
+    }
+  }
+
+  // Update Document Tabs if multiple documents exist
+  if (data.documents && data.documents.length > 0) {
+    const docTabsContainer = document.querySelector('.doc-tabs');
+    if (docTabsContainer) {
+      docTabsContainer.innerHTML = data.documents.map((d, i) => `
+        <button class="doc-tab ${i === 0 ? 'active' : ''}" id="tab-doc-${i}" onclick="switchActiveDoc(${i})">
+          📄 ${d.doc_name} (${d.page_count}p)
+        </button>
+      `).join('');
+    }
+  }
+
+  // Update Findings Data and Sidebar Cards
+  if (data.findings && data.findings.length > 0) {
+    findingsData = {};
+    data.findings.forEach((f, idx) => {
+      const num = idx + 1;
+      const ev = (f.evidence && f.evidence.length > 0) ? f.evidence[0] : null;
+      const matchingDraft = data.drafts ? data.drafts.find(d => d.finding_id === f.finding_id) : null;
+      findingsData[num] = {
+        id: `#${f.finding_id}`,
+        severity: f.severity,
+        title: f.title,
+        rule: `Rule: ${f.rule_id}`,
+        targetDoc: ev ? `${ev.doc_name || 'Document'}, Page ${ev.page || 1}` : 'Document, Page 1',
+        statusBadge: f.status === 'RESOLVED' ? 'Auto-Matched' : 'Pending Human Review',
+        quote: ev ? `“...${ev.quote.slice(0, 100)}...”` : `“...${f.description.slice(0, 100)}...”`,
+        fullQuote: ev ? `“...${ev.quote}...”` : `“...${f.description}...”`,
+        lineRef: ev ? `Page ${ev.page || 1}` : 'Line 12-15',
+        calloutTitle: `FINDING REFERENCE #${num} • ${f.title.toUpperCase()}`,
+        page: ev ? (ev.page || 1) : 1,
+        ticketText: matchingDraft ? matchingDraft.body : `MEMORANDUM: RETRIEVAL REQUEST\nCLAIM ID: ${data.packet_id}\nPATIENT: ${data.patient_name || 'Patient'}\n\nISSUE: ${f.title}\n${f.description}`
+      };
+    });
+
+    const cardsList = document.querySelector('.findings-cards-list');
+    if (cardsList) {
+      cardsList.innerHTML = Object.keys(findingsData).map(k => {
+        const f = findingsData[k];
+        const sevLower = f.severity.toLowerCase();
+        const sevBadge = sevLower.includes('crit') 
+          ? '<span class="badge badge-critical-solid">Critical</span>'
+          : (sevLower.includes('warn')
+            ? '<span class="badge badge-warning-solid">Warning</span>'
+            : '<span class="badge badge-info-solid">Informational</span>');
+        
+        return `
+          <div class="finding-card ${k == 1 ? 'active' : ''}" id="fnd-card-${k}" onclick="selectFinding(${k})">
+            <div class="card-meta-row">
+              <div class="card-meta-left">
+                ${sevBadge}
+                <span class="badge-ref-id">${f.id}</span>
+              </div>
+              <span class="badge badge-pending-human" id="fnd-${k}-status">${f.statusBadge}</span>
+            </div>
+            <h4 class="card-title">${f.title}</h4>
+            <p class="card-description">${f.description || f.title}</p>
+            <div class="card-footer-action">
+              <span class="doc-page-tag">📄 ${f.targetDoc}</span>
+              <span class="inspect-link">Inspecting in viewer →</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Update Findings Header Counts
+    const headerCountBadge = document.querySelector('.findings-title-left .badge-gray-count');
+    if (headerCountBadge) headerCountBadge.innerText = `${data.findings.length} Identified`;
+
+    const critCount = data.findings.filter(f => f.severity.toLowerCase().includes('crit')).length;
+    const warnCount = data.findings.filter(f => f.severity.toLowerCase().includes('warn')).length;
+    const infoCount = data.findings.filter(f => f.severity.toLowerCase().includes('info')).length;
+
+    const pillsRow = document.querySelector('.finding-pills-row');
+    if (pillsRow) {
+      pillsRow.innerHTML = `
+        <span class="badge-count-pill badge-red-count">${critCount} Critical</span>
+        <span class="badge-count-pill badge-amber-count">${warnCount} Warning</span>
+        <span class="badge-count-pill badge-blue-count">${infoCount} Info</span>
+      `;
+    }
+
+    selectFinding(1);
+  }
+}
+
+function updateDashboardWithNewAudit(data) {
+  // 1. Increment Total Audits Card
+  const totalAuditsEl = document.getElementById('stat-total-audits');
+  if (totalAuditsEl) {
+    const cur = parseInt(totalAuditsEl.innerText) || 142;
+    totalAuditsEl.innerText = cur + 1;
+  }
+
+  // 2. Increment Needs Attention or Ready for Review Card
+  const hasIssues = (data.open_findings && data.open_findings > 0) || 
+                    (data.total_findings && data.total_findings > 0) || 
+                    (data.readiness_status || '').includes('ATTENTION') || 
+                    (data.readiness_status || '').includes('NOT_READY');
+
+  if (hasIssues) {
+    const needsAttentionEl = document.getElementById('stat-needs-attention');
+    if (needsAttentionEl) {
+      const cur = parseInt(needsAttentionEl.innerText) || 18;
+      needsAttentionEl.innerText = cur + 1;
+    }
+  } else {
+    const readyReviewEl = document.getElementById('stat-ready-review');
+    if (readyReviewEl) {
+      const cur = parseInt(readyReviewEl.innerText) || 34;
+      readyReviewEl.innerText = cur + 1;
+    }
+  }
+
+  const nowTimeStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ', ' + new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+  // 3. Prepend to Recent Audits table on Dashboard
+  const dashboardTbody = document.getElementById('dashboard-recent-audits');
+  if (dashboardTbody) {
+    const newRow = `
+      <tr style="background-color: #f0fdf4;">
+        <td class="font-medium text-dark">
+          <span class="doc-icon-prefix">📄</span> Claim #${data.packet_id}
+        </td>
+        <td class="text-muted">${nowTimeStr}</td>
+        <td>${getStatusBadgeHtml(data.readiness_status || 'NEEDS_ATTENTION')}</td>
+        <td class="text-right">
+          <button class="action-link-btn" onclick="openClaimWorkspace('${data.packet_id}')">
+            Open in Workspace <span class="arrow-icon">→</span>
+          </button>
+        </td>
+      </tr>
+    `;
+    dashboardTbody.innerHTML = newRow + dashboardTbody.innerHTML;
+  }
+
+  // 4. Prepend to Audit History table
+  const historyTbody = document.getElementById('historyTableBody');
+  if (historyTbody) {
+    const nowTimeStr2 = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ' • ' + new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    const newRow = `
+      <tr style="background-color: #f0fdf4;">
+        <td class="font-medium text-dark">Claim #${data.packet_id}</td>
+        <td class="text-muted">${nowTimeStr2}</td>
+        <td>${getStatusBadgeHtml(data.readiness_status || 'NEEDS_ATTENTION')}</td>
+        <td class="text-right">
+          <button class="action-link-btn" onclick="openClaimWorkspace('${data.packet_id}')">
+            View Audit <span class="arrow-icon">→</span>
+          </button>
+        </td>
+      </tr>
+    `;
+    historyTbody.innerHTML = newRow + historyTbody.innerHTML;
+
+    const countDisplay = document.querySelector('.pagination-count');
+    if (countDisplay) {
+      const match = countDisplay.innerText.match(/of\s+(\d+)\s+total/);
+      const currentTotal = match ? parseInt(match[1]) : 48;
+      countDisplay.innerHTML = `Showing <strong>1 to 8</strong> of <strong>${currentTotal + 1}</strong> total claim audits`;
     }
   }
 }
