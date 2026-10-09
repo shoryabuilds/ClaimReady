@@ -77,9 +77,27 @@ class ClaimReadyHandler(SimpleHTTPRequestHandler):
 
             scenario_key = body.get("scenario", "scenario_01")
             packet_id = body.get("packet_id", f"CR-2024-{uuid.uuid4().hex[:4].upper()}")
-            file_paths = SCENARIO_PATHS.get(scenario_key, SCENARIO_PATHS["scenario_01"])
-
-            print(f"[API] Running audit for scenario: {scenario_key}, packet: {packet_id}")
+            
+            custom_files = body.get("custom_files")
+            if custom_files and isinstance(custom_files, list) and len(custom_files) > 0:
+                upload_dir = os.path.join(SAMPLE_DIR, "uploads", packet_id)
+                os.makedirs(upload_dir, exist_ok=True)
+                file_paths = []
+                import base64
+                for cf in custom_files:
+                    fname = os.path.basename(cf.get("name", "claim_report.pdf"))
+                    fpath = os.path.join(upload_dir, fname)
+                    b64_content = cf.get("base64", "")
+                    if b64_content:
+                        with open(fpath, "wb") as f_out:
+                            f_out.write(base64.b64decode(b64_content))
+                        file_paths.append(fpath)
+                if not file_paths:
+                    file_paths = SCENARIO_PATHS.get(scenario_key, SCENARIO_PATHS["scenario_01"])
+                print(f"[API] Processing {len(file_paths)} custom uploaded document(s) for packet {packet_id}")
+            else:
+                file_paths = SCENARIO_PATHS.get(scenario_key, SCENARIO_PATHS["scenario_01"])
+                print(f"[API] Running audit for scenario: {scenario_key}, packet: {packet_id}")
 
             try:
                 # 1. Run Pipeline (Gemma AI Extraction + Deterministic Rules + Resolution Drafts)

@@ -435,18 +435,87 @@ function downloadTicketPDF() {
   a.click();
 }
 
+let uploadedFilesPayload = [];
+
+// Prevent browser from opening files dropped anywhere on page
+window.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+}, false);
+
+window.addEventListener('drop', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+}, false);
+
+function setupDragAndDrop() {
+  const dropZone = document.getElementById('fileDropZone');
+  if (!dropZone) return;
+
+  ['dragenter', 'dragover'].forEach(name => {
+    dropZone.addEventListener(name, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropZone.classList.add('drag-active');
+    }, false);
+  });
+
+  ['dragleave', 'drop'].forEach(name => {
+    dropZone.addEventListener(name, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropZone.classList.remove('drag-active');
+    }, false);
+  });
+
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dropZone.classList.remove('drag-active');
+    const dt = e.dataTransfer;
+    if (dt && dt.files && dt.files.length > 0) {
+      processFiles(dt.files);
+    }
+  }, false);
+}
+
+function processFiles(files) {
+  uploadedFilesPayload = [];
+  const indicator = document.getElementById('selectedFileName');
+  const selector = document.getElementById('scenarioSelector');
+
+  if (selector) {
+    selector.value = 'custom';
+    currentScenario = 'custom';
+  }
+
+  const fileList = Array.from(files);
+  const names = fileList.map(f => f.name).join(', ');
+  const totalKb = (fileList.reduce((acc, f) => acc + f.size, 0) / 1024).toFixed(1);
+
+  if (indicator) {
+    indicator.innerText = `Selected ${fileList.length} document(s): ${names} (${totalKb} KB)`;
+  }
+
+  fileList.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const base64 = e.target.result.split(',')[1] || '';
+      uploadedFilesPayload.push({
+        name: file.name,
+        size: file.size,
+        base64: base64
+      });
+      console.log(`Loaded ${file.name} for AI extraction.`);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 function handleFileSelected(e) {
   const files = e.target.files;
   if (files && files.length > 0) {
-    const indicator = document.getElementById('selectedFileName');
-    if (indicator) {
-      if (files.length === 1) {
-        indicator.innerText = `Selected: ${files[0].name} (${(files[0].size / 1024).toFixed(1)} KB)`;
-      } else {
-        const names = Array.from(files).map(f => f.name).join(', ');
-        indicator.innerText = `Selected ${files.length} files: ${names}`;
-      }
-    }
+    processFiles(files);
   }
 }
 
@@ -458,9 +527,10 @@ function handleScenarioSelect() {
   const indicator = document.getElementById('selectedFileName');
   currentScenario = selector.value;
   if (selector.value !== 'custom') {
+    uploadedFilesPayload = [];
     if (indicator) indicator.innerText = `Preset loaded: ${selector.options[selector.selectedIndex].text}`;
   } else {
-    if (indicator) indicator.innerText = '';
+    if (indicator && uploadedFilesPayload.length === 0) indicator.innerText = '';
   }
 }
 
@@ -482,16 +552,22 @@ async function runLiveReAudit() {
     runBtn.disabled = true;
   }
 
-  console.log(`🚀 Starting Live Audit: scenario=${currentScenario}, packet=${currentPacketId}`);
+  console.log(`🚀 Starting Live Audit: scenario=${currentScenario}, packet=${currentPacketId}, customFiles=${uploadedFilesPayload.length}`);
 
   try {
+    const payload = {
+      scenario: currentScenario,
+      packet_id: currentPacketId
+    };
+
+    if (currentScenario === 'custom' && uploadedFilesPayload.length > 0) {
+      payload.custom_files = uploadedFilesPayload;
+    }
+
     const res = await fetch('/api/audit/run', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        scenario: currentScenario,
-        packet_id: currentPacketId
-      })
+      body: JSON.stringify(payload)
     });
 
     if (!res.ok) {
@@ -551,4 +627,5 @@ function filterHistoryTable() {
 document.addEventListener('DOMContentLoaded', () => {
   selectFinding(1);
   loadLiveSupabaseData();
+  setupDragAndDrop();
 });
