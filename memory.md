@@ -68,6 +68,19 @@
 * **Documentation (`README.md`):**
   * Updated README with system architecture, edge case explanations, and quickstart commands.
 
+### Entry 003 — 2026-10-09: Supabase Database (PostgreSQL + Storage) Architecture & Repository Implementation
+* **SQL DDL Migration Script (`scripts/setup_supabase.sql`):**
+  * Created complete, production-ready schema for `packets`, `documents`, `extracted_facts` (JSONB), `audit_runs`, `findings`, `resolution_drafts`, and `claim-packets` Supabase Storage bucket.
+* **Dual-Engine Repository Pattern (`persistence/`):**
+  * `supabase_client.py`: Client initializer supporting environment credentials (`SUPABASE_URL`, `SUPABASE_KEY`).
+  * `repository.py`: Implemented `SupabaseRepository` for cloud operations and `SQLiteRepository` for offline local fallback.
+  * `tests/test_persistence.py`: Added automated test suite ensuring 100% test pass rate with fallback.
+* **Dependencies Updated:**
+  * Added `supabase>=2.4.0` and `python-dotenv>=1.0.0` to `requirements.txt`.
+* **Documentation Synchronization:**
+  * Updated `architecture.md` (Section 6) with Supabase schema and dual-engine architecture.
+  * Updated `prd.md` (Section 8 Definition of Done) to include cloud database integration.
+
 ### Entry 001 — 2026-10-09: Repository Cloning & Specification Baseline
 * Cloned upstream repo `https://github.com/shoryabuilds/ClaimReady` to Desktop.
 * Authored `rules.md`, `prd.md`, `design.md`, `architecture.md`, `memory.md`.
@@ -85,21 +98,25 @@ ClaimReady/
 ├── prd.md                  # Comprehensive Product Requirements Document
 ├── design.md               # UI/UX & Interaction Design specification
 ├── architecture.md         # Technical architecture & schemas
-├── requirements.txt        # Python dependencies
+├── requirements.txt        # Python dependencies (including supabase)
+├── scripts/                # Database migrations
+│   └── setup_supabase.sql  # Supabase PostgreSQL DDL script
 ├── schemas/                # Pydantic data contracts
 ├── ingestion/              # PyMuPDF ingestion & page rendering
 ├── extraction/             # Gemma AI adapter & prompts
 ├── verification/           # Deterministic verification rules engine
 ├── resolution/             # Agentic draft generator
 ├── audit/                  # Audit orchestrator & differential re-audit
+├── persistence/            # Supabase & SQLite repository adapters
 ├── ui/                     # UI styles and components
 ├── sample_data/            # Synthetic test packets
-└── tests/                  # 13 passing automated unit & integration tests
+└── tests/                  # 15 passing automated unit & integration tests
 ```
 
 ---
 
 ## 4. Next Steps
-1. Synchronize all newly created files to `C:\Users\anish\Desktop\ClaimReady`.
-2. Commit and push changes to GitHub (`origin/main`).
-3. Run live Streamlit preview or browser verification.
+1. User runs `scripts/setup_supabase.sql` in their Supabase dashboard.
+2. User adds `SUPABASE_URL` and `SUPABASE_KEY` to `.env`.
+3. Synchronize all newly created files to `C:\Users\anish\Desktop\ClaimReady`.
+4. Commit and push changes to GitHub (`origin/main`).

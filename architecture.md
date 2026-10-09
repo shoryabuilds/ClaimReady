@@ -234,15 +234,25 @@ Each rule is a pure function taking `ExtractedFacts` and returning `list[Finding
 
 ---
 
-## 6. Persistence & Storage Model
+## 6. Persistence & Storage Model (Supabase & Local Fallback)
 
-SQLite schema with WAL mode enabled:
-* `packets`: Stores packet ID, patient MRN, created timestamp, status.
-* `documents`: Stores document ID, file path, doc type, page count.
-* `extracted_facts`: Stores JSON payload of extracted fields with evidence.
-* `audit_runs`: Stores audit run ID, packet ID, timestamp, readiness status.
-* `findings`: Stores individual findings, rule IDs, status, override reasons.
-* `action_drafts`: Stores drafts, approvals, and dispatch logs.
+ClaimReady implements a dual-engine repository pattern via `persistence/repository.py`:
+* **Cloud Mode (Supabase):** Relational PostgreSQL database + Supabase Storage bucket for parallel frontend/backend access.
+* **Local Mode (SQLite + Disk):** Automatic, zero-configuration local fallback for offline CI/CD and demo environments when Supabase credentials are not configured.
+
+### 6.1 Supabase Relational Schema & Tables
+* `packets`: Stores `id`, `claim_id`, `patient_mrn`, `patient_name`, `status`, `created_at`.
+* `documents`: Stores `id`, `packet_id`, `doc_name`, `doc_type`, `page_count`, `storage_path`, `uploaded_at`.
+* `extracted_facts`: Native `JSONB` columns (`clinical_data`, `investigations`, `document_types`) preserving rich structured facts without serialization overhead.
+* `audit_runs`: Stores `id`, `packet_id`, `run_number`, `readiness_status`, `readiness_explanation`, `total_findings`, `open_findings`, `resolved_findings`, `created_at`.
+* `findings`: Stores `id`, `run_id`, `rule_id`, `category`, `severity`, `title`, `description`, `status`, native `evidence JSONB` array, `suggested_action`, `human_override_reason`.
+* `resolution_drafts`: Stores `id`, `finding_id`, `action_type`, `target_department`, `subject`, `body`, `is_approved`, `approved_by`.
+
+### 6.2 Supabase Storage Bucket
+* `claim-packets` bucket: Stores uploaded claim packet PDFs organized by packet ID (`{packet_id}/{filename}.pdf`), accessible via authenticated or public signed URLs.
+
+### 6.3 SQL DDL Migration File
+The complete migration script is versioned in `scripts/setup_supabase.sql` for instant execution in the Supabase SQL Editor.
 
 ---
 

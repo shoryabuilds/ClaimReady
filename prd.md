@@ -131,10 +131,11 @@ For each open finding, generate an evidence-grounded action draft:
 
 ## 8. Definition of Done (MVP)
 
-- [ ] Complete pipeline: PDF intake $\rightarrow$ extraction $\rightarrow$ verification $\rightarrow$ resolution $\rightarrow$ re-audit.
-- [ ] Working Gemma adapter with structured Pydantic schema validation and fallback handling.
-- [ ] Deterministic rule modules passing all 5 edge case test suites.
-- [ ] Clean Streamlit UI with PDF viewer, finding cards, and editable action drafts.
-- [ ] Re-audit flow demonstrating gap resolution when a missing report is supplied.
-- [ ] Complete synthetic data suite with no real patient data.
-- [ ] Automated pytest suite covering unit and integration scenarios.
+- [x] Complete pipeline: PDF intake $\rightarrow$ extraction $\rightarrow$ verification $\rightarrow$ resolution $\rightarrow$ re-audit.
+- [x] Working Gemma adapter with structured Pydantic schema validation and fallback handling.
+- [x] Deterministic rule modules passing all 5 edge case test suites.
+- [x] Clean Streamlit UI with PDF viewer, finding cards, and editable action drafts.
+- [x] Re-audit flow demonstrating gap resolution when a missing report is supplied.
+- [x] Complete synthetic data suite with no real patient data.
+- [x] Automated pytest suite covering unit and integration scenarios (15 passing tests).
+- [x] Supabase Cloud Database (PostgreSQL + Storage) schema & dual-engine repository with local SQLite fallback.
