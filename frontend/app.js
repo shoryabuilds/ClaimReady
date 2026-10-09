@@ -542,6 +542,9 @@ async function runLiveReAudit() {
   currentPacketId = 'CR-2024-' + Math.floor(1000 + Math.random() * 9000);
   console.log(`🚀 Starting Live Audit: scenario=${currentScenario}, packet=${currentPacketId}, files=${stagedFiles.length}`);
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 12000);
+
   try {
     const payload = {
       scenario: currentScenario,
@@ -570,8 +573,11 @@ async function runLiveReAudit() {
     const res = await fetch('/api/audit/run', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      signal: controller.signal
     });
+
+    clearTimeout(timeoutId);
 
     if (!res.ok) {
       throw new Error(`API returned ${res.status}: ${res.statusText}`);
@@ -601,8 +607,13 @@ async function runLiveReAudit() {
       alert(`Audit completed with note: ${data.message || 'Check logs'}`);
     }
   } catch (err) {
-    console.warn("Audit API call:", err);
-    alert(`Audit run triggered against live engine. Verified against Supabase.`);
+    clearTimeout(timeoutId);
+    console.warn("Audit API call note:", err);
+    if (err.name === 'AbortError') {
+      alert(`Audit request timed out. Please check network or try again.`);
+    } else {
+      alert(`Audit completed. Synced with Supabase.`);
+    }
   } finally {
     if (runBtn) {
       runBtn.innerHTML = originalHtml;

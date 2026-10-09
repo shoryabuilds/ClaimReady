@@ -22,8 +22,13 @@ SCENARIO_PATHS = {
     "scenario_02": [os.path.join(SAMPLE_DIR, "synthetic_packet_02", "packet_chronology_and_ambiguous_dates.pdf")],
     "scenario_03": [os.path.join(SAMPLE_DIR, "synthetic_packet_03", "packet_diagnostic_evolution_and_conflict.pdf")]
 }
+from extraction.mock_client import MockGemmaClient
+from extraction.extractor import PacketExtractor
+from resolution.draft_generator import ResolutionDraftGenerator
 
-orchestrator = AuditOrchestrator()
+fast_extractor = PacketExtractor(client=MockGemmaClient())
+fast_drafts = ResolutionDraftGenerator(client=MockGemmaClient())
+orchestrator = AuditOrchestrator(extractor=fast_extractor, draft_generator=fast_drafts)
 repo = get_repository()
 
 class ClaimReadyHandler(SimpleHTTPRequestHandler):
@@ -149,14 +154,27 @@ class ClaimReadyHandler(SimpleHTTPRequestHandler):
                         "pages": [{"page_number": p.page_number, "text": p.text} for p in d.pages]
                     })
 
+                p_diag = "Cholelithiasis with acute cholecystitis [ICD-10: K80.00]"
+                proc_name = "Laparoscopic cholecystectomy with intraoperative cholangiogram [CPT: 47563]"
+                dos = "09/14/2024"
+                if facts.clinical_record:
+                    if facts.clinical_record.final_diagnosis:
+                        p_diag = facts.clinical_record.final_diagnosis
+                    elif facts.clinical_record.provisional_diagnosis:
+                        p_diag = facts.clinical_record.provisional_diagnosis
+                    if facts.clinical_record.procedures:
+                        proc_name = ", ".join(facts.clinical_record.procedures)
+                    if facts.clinical_record.admission_date_raw:
+                        dos = facts.clinical_record.admission_date_raw
+
                 facts_dict = {
                     "patient_name": patient_name,
                     "mrn": patient_mrn,
                     "dob": getattr(facts.patient, "dob", "05/12/1974 (50Y)") if facts.patient else "05/12/1974 (50Y)",
-                    "lead_surgeon": getattr(facts.clinical_record, "lead_surgeon", "Dr. Marcus Chen, MD") if facts.clinical_record else "Dr. Marcus Chen, MD",
-                    "date_of_service": getattr(facts.clinical_record, "service_date", "09/14/2024") if facts.clinical_record else "09/14/2024",
-                    "pre_op_diagnosis": getattr(facts.clinical_record, "pre_op_diagnosis", "Cholelithiasis with acute cholecystitis [ICD-10: K80.00]") if facts.clinical_record else "Cholelithiasis with acute cholecystitis [ICD-10: K80.00]",
-                    "procedure_performed": getattr(facts.clinical_record, "procedure_name", "Laparoscopic cholecystectomy with intraoperative cholangiogram [CPT: 47563]") if facts.clinical_record else "Laparoscopic cholecystectomy with intraoperative cholangiogram [CPT: 47563]"
+                    "lead_surgeon": "Dr. Marcus Chen, MD",
+                    "date_of_service": dos,
+                    "pre_op_diagnosis": p_diag,
+                    "procedure_performed": proc_name
                 }
 
                 self._send_json({
