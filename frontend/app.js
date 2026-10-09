@@ -1,3 +1,375 @@
+
+// ============================================================
+// DYNAMIC CLINICAL & BILLING PAGE TEMPLATES (PAGES 1 TO 8)
+// ============================================================
+function getPageHTML(page) {
+  switch (page) {
+    case 1:
+      return `
+        <div class="doc-hospital-header">
+          <div>
+            <h2 class="hospital-name">ST. JUDE REGIONAL MEDICAL CENTER</h2>
+            <h3 class="document-kind-title">Inpatient Admission Slip</h3>
+            <div class="hospital-dept">Emergency & Acute Surgical Intake &bull; Ward 3B</div>
+          </div>
+          <div class="hospital-meta-right">
+            <div>MRN: #994-019-21</div>
+            <div>ACCT: #NY-8902</div>
+            <div class="confidential-tag">CONFIDENTIAL RECORD</div>
+          </div>
+        </div>
+
+        <div class="patient-info-strip">
+          <div class="info-cell">
+            <span class="cell-label">PATIENT NAME</span>
+            <span class="cell-val">Eleanor Vance</span>
+          </div>
+          <div class="info-cell">
+            <span class="cell-label">DOB / SEX</span>
+            <span class="cell-val">1984-05-14 (Female)</span>
+          </div>
+          <div class="info-cell">
+            <span class="cell-label">ADMISSION DATE</span>
+            <span class="cell-val" style="color: #059669; font-weight: 700;">2026-10-12 14:22 EST</span>
+          </div>
+          <div class="info-cell">
+            <span class="cell-label">ATTENDING PHYSICIAN</span>
+            <span class="cell-val">Dr. Marcus Brody, MD (NPI 1882910492)</span>
+          </div>
+        </div>
+
+        <div class="clinical-narrative-card">
+          <div class="card-section-title">ADMISSION SUMMARY & CHIEF COMPLAINT</div>
+          <p>Patient presented to the Emergency Department complaining of severe lower right quadrant abdominal pain progressing over 36 hours. Nausea, low-grade fever (100.8&deg;F), leukocytosis (WBC 14,200). Abdominal tenderness noted on palpation at McBurney's point. Rebound tenderness positive.</p>
+          <p><strong>Admitting Diagnosis:</strong> Acute Appendicitis (ICD-10: K35.80). Patient prepped for diagnostic ultrasound followed by urgent laparoscopic appendectomy.</p>
+          <div style="margin-top: 14px; padding: 10px 14px; background: #ecfdf5; border-left: 4px solid #10b981; border-radius: 4px; font-size: 12px; color: #065f46;">
+            <strong>Admitted Date of Service Verified:</strong> 2026-10-12. Note discrepancy with CMS-1500 Box 24A (which lists 2026-10-14).
+          </div>
+        </div>
+      `;
+
+    case 2:
+      return `
+        <div class="doc-hospital-header">
+          <div>
+            <h2 class="hospital-name">HEALTH INSURANCE CLAIM FORM</h2>
+            <h3 class="document-kind-title">CMS-1500 (02/12) &bull; Official Standard Billing Packet</h3>
+            <div class="hospital-dept">Billing Entity: St. Jude Physician Services &bull; Tax ID: 14-8829104</div>
+          </div>
+          <div class="hospital-meta-right">
+            <div>PAGE 2 OF 8</div>
+            <div>STATUS: PRE-SUBMISSION AUDIT</div>
+            <div class="confidential-tag" style="background: #fee2e2; color: #dc2626;">BILLING INTEGRITY ALERT</div>
+          </div>
+        </div>
+
+        <div class="cms-form-wrapper">
+          <div class="cms-header-band">
+            <span class="cms-title-main">FORM CMS-1500 &mdash; HEALTH INSURANCE CLAIM FORM</span>
+            <span class="cms-omb-badge">OMB-0938-1197 FORM 1500 (02-12)</span>
+          </div>
+
+          <div class="cms-grid-row">
+            <div class="cms-box" style="flex: 2;">
+              <span class="cms-box-label">1. MEDICARE / MEDICAID / TRICARE / GROUP HEALTH PLAN</span>
+              <span class="cms-box-val">[X] COMMERCIAL / BLUE CROSS BLUE SHIELD (Payer ID: 00431)</span>
+            </div>
+            <div class="cms-box" style="flex: 2;">
+              <span class="cms-box-label">1a. INSURED'S I.D. NUMBER</span>
+              <span class="cms-box-val">BCBS-NY-902488192</span>
+            </div>
+          </div>
+
+          <div class="cms-grid-row">
+            <div class="cms-box" style="flex: 2;">
+              <span class="cms-box-label">2. PATIENT'S NAME (Last Name, First Name, Middle Initial)</span>
+              <span class="cms-box-val">VANCE, ELEANOR M.</span>
+            </div>
+            <div class="cms-box" style="flex: 1;">
+              <span class="cms-box-label">3. PATIENT'S BIRTH DATE</span>
+              <span class="cms-box-val">05 / 14 / 1984 &bull; F</span>
+            </div>
+            <div class="cms-box" style="flex: 2;">
+              <span class="cms-box-label">4. INSURED'S NAME</span>
+              <span class="cms-box-val">VANCE, ELEANOR M.</span>
+            </div>
+          </div>
+
+          <div class="cms-grid-row">
+            <div class="cms-box" style="flex: 3;">
+              <span class="cms-box-label">5. PATIENT'S ADDRESS</span>
+              <span class="cms-box-val">742 Evergreen Terrace, New York, NY 10021</span>
+            </div>
+            <div class="cms-box" style="flex: 2;">
+              <span class="cms-box-label">11. POLICY GROUP NUMBER</span>
+              <span class="cms-box-val">GRP-88190-TX4</span>
+            </div>
+          </div>
+
+          <div class="cms-grid-row">
+            <div class="cms-box" style="flex: 3;">
+              <span class="cms-box-label">21. DIAGNOSIS OR NATURE OF ILLNESS OR INJURY (ICD-10-CM)</span>
+              <span class="cms-box-val">A. K35.80 (Acute appendicitis, other / unspec) &nbsp;&bull;&nbsp; B. R10.31 (RLQ pain)</span>
+            </div>
+            <div class="cms-box" style="flex: 2;">
+              <span class="cms-box-label">23. PRIOR AUTHORIZATION NUMBER</span>
+              <span class="cms-box-val">PA-99210-TX-4 (Approved)</span>
+            </div>
+          </div>
+
+          <div class="cms-table-header">24. LINES OF SERVICE &mdash; DATES, PROCEDURES, CHARGES, DIAGNOSIS POINTER</div>
+          <table class="cms-lines-table">
+            <thead>
+              <tr>
+                <th style="width: 130px;">24A. DATES OF SERVICE (MM/DD/YYYY)</th>
+                <th style="width: 45px;">24B. POS</th>
+                <th style="width: 75px;">24D. CPT / HCPCS</th>
+                <th style="width: 55px;">MODIF</th>
+                <th style="width: 45px;">DIAG</th>
+                <th style="width: 70px;">24F. CHARGES</th>
+                <th style="width: 40px;">DAYS</th>
+                <th>AUDIT INTEGRITY FLAGS</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="cms-mismatch-row">
+                <td style="color: #dc2626;">
+                  <strong>10/14/2026 - 10/14/2026</strong>
+                  <span class="cms-mismatch-badge">MISMATCH</span>
+                </td>
+                <td>21</td>
+                <td><strong>44970</strong></td>
+                <td>-</td>
+                <td>A</td>
+                <td>$4,850.00</td>
+                <td>1</td>
+                <td style="color: #b91c1c; font-size: 10px;">
+                  &#9888; <strong>Finding #2 Flagged:</strong> Date of service 10/14 does not match Inpatient Admission date of 10/12/2026.
+                </td>
+              </tr>
+              <tr>
+                <td>10/12/2026 - 10/12/2026</td>
+                <td>21</td>
+                <td><strong>76705</strong></td>
+                <td>-26</td>
+                <td>A, B</td>
+                <td>$320.00</td>
+                <td>1</td>
+                <td style="color: #b45309; font-size: 10px;">
+                  &#9888; <strong>Finding #1 Flagged:</strong> Diagnostic ultrasound billed without required signed scan report.
+                </td>
+              </tr>
+              <tr>
+                <td>10/12/2026 - 10/12/2026</td>
+                <td>21</td>
+                <td><strong>99223</strong></td>
+                <td>-25</td>
+                <td>A</td>
+                <td>$410.00</td>
+                <td>1</td>
+                <td style="color: #059669; font-size: 10px;">
+                  &#10004; Initial hospital care code supported by clinical complexity documentation.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="cms-footer-band">
+            <span>25. FEDERAL TAX I.D.: 14-8829104</span>
+            <span>28. TOTAL CHARGE: $5,580.00</span>
+            <span>31. SIGNATURE OF PHYSICIAN: Marcus Brody, MD (Signature on File)</span>
+          </div>
+        </div>
+
+        <div style="margin-top: 12px; padding: 12px 16px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; font-size: 12px; color: #991b1b;">
+          <strong>Auditor Notice for CMS-1500:</strong> ClaimReady cross-referenced Box 24A line 1 against Page 1 (Admission Slip). The discrepancy between 10/14/2026 and 10/12/2026 will trigger an automatic clearinghouse rejection (ANSI Reason Code 16 - Claim lacks information or has submission/billing errors).
+        </div>
+      `;
+
+    case 3:
+      return `
+        <div class="doc-hospital-header">
+          <div>
+            <h2 class="hospital-name">ST. JUDE REGIONAL MEDICAL CENTER</h2>
+            <h3 class="document-kind-title">Surgical Operative Note</h3>
+            <div class="hospital-dept">Department of General Surgery &bull; Operating Suite 4</div>
+          </div>
+          <div class="hospital-meta-right">
+            <div>PAGE 3 OF 8</div>
+            <div>STATUS: SIGNED & ARCHIVED</div>
+            <div class="confidential-tag">CONFIDENTIAL RECORD</div>
+          </div>
+        </div>
+
+        <div class="patient-info-strip">
+          <div class="info-cell">
+            <span class="cell-label">PATIENT NAME</span>
+            <span class="cell-val">Eleanor Vance</span>
+          </div>
+          <div class="info-cell">
+            <span class="cell-label">MRN</span>
+            <span class="cell-val">#994-019-21</span>
+          </div>
+          <div class="info-cell">
+            <span class="cell-label">DATE OF SURGERY</span>
+            <span class="cell-val">2026-10-12 16:30 EST</span>
+          </div>
+          <div class="info-cell">
+            <span class="cell-label">SURGEON</span>
+            <span class="cell-val">Dr. Marcus Brody, MD</span>
+          </div>
+        </div>
+
+        <div class="clinical-narrative-card">
+          <div class="card-section-title">PROCEDURE DETAILS</div>
+          <div class="clinical-line"><strong>Pre-operative Diagnosis:</strong> Acute Appendicitis (ICD-10: K35.80)</div>
+          <div class="clinical-line"><strong>Post-operative Diagnosis:</strong> Suppurative Acute Appendicitis with localized peritonitis</div>
+          <div class="clinical-line"><strong>Procedure Performed:</strong> Laparoscopic Appendectomy (CPT 44970)</div>
+          <div class="clinical-line"><strong>Anesthesia:</strong> General Endotracheal Anesthesia</div>
+          <div class="clinical-line"><strong>Estimated Blood Loss:</strong> &lt; 25 mL</div>
+          <div class="clinical-line"><strong>Specimens Removed:</strong> Vermiform appendix to Surgical Pathology</div>
+
+          <div class="card-section-title" style="margin-top: 14px;">OPERATIVE DESCRIPTION & NARRATIVE</div>
+          <p>The patient was brought to the operating room and placed in the supine position. Following endotracheal intubation, a Foley catheter was inserted. The abdomen was prepped and draped in standard sterile fashion.</p>
+          <p>A 10mm supraumbilical incision was made, and pneumoperitoneum established using the open Hasson technique. Inspection of the right lower quadrant revealed an acutely inflamed, hyperemic, and swollen appendix with fibrinopurulent exudate along the cecal base.</p>
+
+          <!-- CITATION CALLOUT BOX FOR FINDING #1 -->
+          <div class="doc-highlight-callout" id="docHighlightBox">
+            <div class="callout-header">
+              <div class="callout-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                </svg>
+                FINDING REFERENCE #1 &bull; MISSING ATTESTATION
+              </div>
+              <span class="line-badge">Lines 42-45</span>
+            </div>
+            <div class="callout-quote">
+              &ldquo;Pre-operative diagnostic ultrasound (CPT 76705) was completed at bedside confirming non-compressible appendix measuring 8.4mm with surrounding hyperemia; however, formal signed radiology report remains pending and is not present in surgical chart.&rdquo;
+            </div>
+          </div>
+
+          <p style="margin-top: 14px;">The mesoappendix was skeletonized and divided using the laparoscopic bipolar vessel sealer. The base of the appendix was secured with two 0-Vicryl endoloops and sharply transected. Hemostasis was verified. Fascia closed with 0-PDS; skin closed with 4-0 Monocryl subcuticular sutures.</p>
+        </div>
+      `;
+
+    case 4:
+      return `
+        <div class="doc-hospital-header">
+          <div>
+            <h2 class="hospital-name">ST. JUDE REGIONAL MEDICAL CENTER</h2>
+            <h3 class="document-kind-title">Surgical Pathology Report</h3>
+            <div class="hospital-dept">Department of Pathology &bull; Laboratory Accession #SP-26-88192</div>
+          </div>
+          <div class="hospital-meta-right">
+            <div>PAGE 4 OF 8</div>
+            <div>DATE COMPLETED: 2026-10-13</div>
+            <div class="confidential-tag">CONFIDENTIAL RECORD</div>
+          </div>
+        </div>
+
+        <div class="patient-info-strip">
+          <div class="info-cell">
+            <span class="cell-label">PATIENT NAME</span>
+            <span class="cell-val">Eleanor Vance</span>
+          </div>
+          <div class="info-cell">
+            <span class="cell-label">SPECIMEN</span>
+            <span class="cell-val">Appendix, Vermiform</span>
+          </div>
+          <div class="info-cell">
+            <span class="cell-label">PATHOLOGIST</span>
+            <span class="cell-val">Dr. Sarah Jenkins, MD, FCAP</span>
+          </div>
+        </div>
+
+        <div class="clinical-narrative-card">
+          <div class="card-section-title">FINAL PATHOLOGIC DIAGNOSIS</div>
+          <p style="font-size: 13px; font-weight: 700; color: #0f172a;">APPENDIX, APPENDECTOMY: ACUTE SUPPURATIVE APPENDICITIS WITH EXTENSIVE TRANSMURAL NEUTROPHILIC INFILTRATION AND PERI-APPENDICITIS (ICD-10: K35.80).</p>
+          <div class="card-section-title" style="margin-top: 14px;">GROSS DESCRIPTION</div>
+          <p>Received in formalin labeled with patient name and MRN is a vermiform appendix measuring 7.8 cm in length by 1.1 cm in maximum outer diameter. The serosa is dull, congested, and covered by yellowish fibrinous exudate. Lumen contains purulent material.</p>
+          <div style="margin-top: 14px; padding: 10px 14px; background: #ecfdf5; border-left: 4px solid #10b981; border-radius: 4px; font-size: 12px; color: #065f46;">
+            <strong>Integrity Check:</strong> Pathology fully confirms surgical necessity for CPT 44970 and primary diagnosis K35.80.
+          </div>
+        </div>
+      `;
+
+    case 5:
+      return `
+        <div class="doc-hospital-header">
+          <div>
+            <h2 class="hospital-name">BCBS HEALTH PLANS OF NEW YORK</h2>
+            <h3 class="document-kind-title">Prior-Authorization Clearance Notice</h3>
+            <div class="hospital-dept">Utilization Review & Prior Authorization Division</div>
+          </div>
+          <div class="hospital-meta-right">
+            <div>PAGE 5 OF 8</div>
+            <div>AUTH #: PA-99210-TX-4</div>
+            <div class="confidential-tag" style="background: #ecfdf5; color: #059669;">APPROVED</div>
+          </div>
+        </div>
+
+        <div class="patient-info-strip">
+          <div class="info-cell">
+            <span class="cell-label">PATIENT NAME</span>
+            <span class="cell-val">Eleanor Vance</span>
+          </div>
+          <div class="info-cell">
+            <span class="cell-label">POLICY NUMBER</span>
+            <span class="cell-val">BCBS-NY-902488192</span>
+          </div>
+          <div class="info-cell">
+            <span class="cell-label">EFFECTIVE WINDOW</span>
+            <span class="cell-val">2026-10-10 to 2026-10-25</span>
+          </div>
+        </div>
+
+        <div class="clinical-narrative-card">
+          <div class="card-section-title">AUTHORIZATION DECISION DETAILS</div>
+          <p><strong>Approved Procedure:</strong> CPT 44970 &mdash; Laparoscopic Appendectomy.</p>
+          <p><strong>Status:</strong> <span style="color: #059669; font-weight: 700;">APPROVED / CLEARED FOR SURGICAL EXPEDITED INTAKE</span>.</p>
+          <p>Prior-authorization was approved upon urgent clinical presentation. Claim Box 23 matches approved tracking number PA-99210-TX-4.</p>
+          <div style="margin-top: 14px; padding: 10px 14px; background: #ecfdf5; border-left: 4px solid #10b981; border-radius: 4px; font-size: 12px; color: #065f46;">
+            <strong>Finding #3 Reference:</strong> Verified prior-auth code is present in Box 23. Zero coverage exclusion risk.
+          </div>
+        </div>
+      `;
+
+    default:
+      return `
+        <div class="doc-hospital-header">
+          <div>
+            <h2 class="hospital-name">ST. JUDE REGIONAL MEDICAL CENTER</h2>
+            <h3 class="document-kind-title">Medical Record &bull; Page ${page} of 8</h3>
+            <div class="hospital-dept">Clinical Documentation & Post-Operative Charting</div>
+          </div>
+          <div class="hospital-meta-right">
+            <div>MRN: #994-019-21</div>
+            <div>PAGE ${page}</div>
+            <div class="confidential-tag">CONFIDENTIAL RECORD</div>
+          </div>
+        </div>
+
+        <div class="patient-info-strip">
+          <div class="info-cell">
+            <span class="cell-label">PATIENT NAME</span>
+            <span class="cell-val">Eleanor Vance</span>
+          </div>
+          <div class="info-cell">
+            <span class="cell-label">ACCOUNT</span>
+            <span class="cell-val">#NY-8902</span>
+          </div>
+        </div>
+
+        <div class="clinical-narrative-card">
+          <div class="card-section-title">CLINICAL OBSERVATION & RECORDS &mdash; PAGE ${page}</div>
+          <p>Routine hospital record, vitals monitoring, nursing flowsheet, and verified physician attestations associated with Inpatient Claim Packet #NY-8902.</p>
+          <p>No active non-conformity findings flagged on this specific page.</p>
+        </div>
+      `;
+  }
+}
+
 // ClaimReady UI Controller & Supabase Live Data Engine
 
 const SUPABASE_CONFIG = {
@@ -309,8 +681,7 @@ function selectFinding(id) {
 
   // Update page number indicator
   currentPage = f.page;
-  const pageNum = document.getElementById('current-page-num');
-  if (pageNum) pageNum.innerText = currentPage;
+  updatePageDisplay();
 }
 
 // 5. MARK CURRENT FINDING AS REVIEWED
@@ -378,21 +749,48 @@ function nextPage() {
 function updatePageDisplay() {
   const pageNum = document.getElementById('current-page-num');
   if (pageNum) pageNum.innerText = currentPage;
+
+  const canvas = document.getElementById('medicalDocumentPage');
+  if (canvas) {
+    canvas.innerHTML = getPageHTML(currentPage);
+  }
+
+  const tabOp = document.getElementById('tab-op-note');
+  if (tabOp) {
+    const titles = {
+      1: "📄 Admission Slip (p.1)",
+      2: "📋 CMS-1500 Claim Form (p.2)",
+      3: "📄 Operative Report (p.3)",
+      4: "📄 Pathology Report (p.4)",
+      5: "📄 Prior-Auth Clearance (p.5)",
+      6: "📄 Anesthesia Record (p.6)",
+      7: "📄 Nursing Notes (p.7)",
+      8: "📄 Discharge Summary (p.8)"
+    };
+    tabOp.innerText = titles[currentPage] || `📄 Document (p.${currentPage})`;
+    tabOp.classList.add('active');
+  }
+
+  const footerLeft = document.querySelector('.doc-footer-status .status-left span:last-child');
+  if (footerLeft) {
+    const footers = {
+      1: "Viewing Page 1 (Admission Record) — St. Jude Regional Medical Center",
+      2: "Viewing Page 2 (CMS-1500 Claim Form) — Corresponds to Finding #2 (Date Mismatch)",
+      3: "Viewing Page 3 (Operative Findings) — Corresponds to Finding #1 (Missing Ultrasound)",
+      4: "Viewing Page 4 (Pathology Report) — Tissue Pathology Verified",
+      5: "Viewing Page 5 (Prior-Authorization) — Verified Clearance Slip",
+      6: "Viewing Page 6 (Anesthesia Record) — Intraoperative Vitals Normal",
+      7: "Viewing Page 7 (Nursing Notes) — Post-Op Ward Monitoring",
+      8: "Viewing Page 8 (Discharge Summary) — Physician Attestation Signed"
+    };
+    footerLeft.innerText = footers[currentPage] || `Viewing Page ${currentPage} of 8`;
+  }
 }
 
 // 8. DOCUMENT TABS
 function selectDocTab(tabName) {
   const tabOp = document.getElementById('tab-op-note');
-  const tabCms = document.getElementById('tab-cms-1500');
-  if (tabName === 'op-note') {
-    tabOp.classList.add('active');
-    tabCms.classList.remove('active');
-    selectFinding(1);
-  } else {
-    tabCms.classList.add('active');
-    tabOp.classList.remove('active');
-    selectFinding(2);
-  }
+  if (tabOp) tabOp.classList.add('active');
 }
 
 // 9. MODAL CONTROLS
