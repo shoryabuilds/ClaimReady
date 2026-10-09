@@ -254,5 +254,5 @@ def run_server(port=8085):
     httpd.serve_forever()
 
 if __name__ == "__main__":
-    port = int(sys.argv[1]) if len(sys.argv) > 1 else 8085
+    port = int(os.environ.get("PORT", sys.argv[1] if len(sys.argv) > 1 else 8085))
     run_server(port)
